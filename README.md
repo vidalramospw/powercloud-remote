@@ -52,11 +52,9 @@ repositorio público mediante GitHub Actions; la firma la realiza el mantenedor
 
 El programa se conecta al servidor `monitoreo.powercloud.com.sv` para registrar su ID y
 establecer las sesiones que el usuario acepta. Las sesiones van cifradas de extremo a extremo.
-PowerCloud Remote no agrega telemetría propia.
-
-Pendiente en esta versión (heredado de RustDesk): la consulta de actualizaciones a
-`api.rustdesk.com` y el servidor API por defecto `admin.rustdesk.com`. Se desactivarán o
-apuntarán a servidores de PowerCloud en una próxima versión.
+PowerCloud Remote no agrega telemetría propia y no se comunica con servidores de RustDesk:
+la consulta de actualizaciones está desactivada y el servidor API (inicio de sesión de
+técnicos, libreta, inventario, auditoría y alias) es `https://monitoreo.powercloud.com.sv:21114`.
 
 ---
 
@@ -76,7 +74,7 @@ any time.
 - **Code signing:** releases are signed with a Certum Open Source Code Signing certificate issued
   to Vidal Enrique Ramos Argueta. Only binaries built from this public repository are signed.
 - **Privacy:** the client registers and connects through `monitoreo.powercloud.com.sv`; sessions
-  are end-to-end encrypted; no telemetry is added. Inherited from upstream and pending removal:
-  the update check against `api.rustdesk.com` and the default API server `admin.rustdesk.com`.
+  are end-to-end encrypted; no telemetry is added and no RustDesk servers are contacted (update
+  check disabled; API server `https://monitoreo.powercloud.com.sv:21114`).
 
 The original RustDesk README is kept in [docs/README-RustDesk.md](docs/README-RustDesk.md).
