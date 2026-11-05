@@ -5,7 +5,7 @@
 // - El tecnico escribe "caja01@pw" en "Controlar escritorio remoto" y pcResolveAlias()
 //   lo traduce al ID numerico antes de conectar (requiere sesion iniciada).
 //
-// "pw" es el dominio publico. Los dominios privados (ej. @pollosreal) piden el codigo de
+// "pw" es el dominio publico. Los dominios privados (ej. @empresa) piden el codigo de
 // registro que PowerCloud entrega al cliente con su plan.
 
 import 'dart:convert';
