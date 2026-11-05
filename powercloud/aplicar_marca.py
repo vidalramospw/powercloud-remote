@@ -63,20 +63,31 @@ def main() -> int:
     reemplazar(cfg, 'pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());',
                f'pub static ref APP_NAME: RwLock<String> = RwLock::new("{tecnico}".to_owned());')
 
-    # 2. Valores por defecto (el usuario los puede cambiar en Configuracion)
-    pares = "".join(
-        f'        m.insert("{k}".to_owned(), "{v}".to_owned());\n'
-        for k, v in MARCA["valores_por_defecto"].items()
-    )
+    # 2. Valores por defecto (el usuario los puede cambiar) y opciones internas (fijas)
+    def mapa(nombre: str, valores: dict, comentario: str) -> None:
+        pares = "".join(
+            f'        m.insert("{k}".to_owned(), "{v}".to_owned());\n' for k, v in valores.items()
+        )
+        reemplazar(
+            cfg,
+            f"pub static ref {nombre}: RwLock<HashMap<String, String>> = Default::default();",
+            f"pub static ref {nombre}: RwLock<HashMap<String, String>> = {{\n"
+            f"        // PowerCloud: {comentario}\n"
+            "        let mut m = HashMap::new();\n"
+            f"{pares}"
+            "        RwLock::new(m)\n"
+            "    };",
+        )
+
+    mapa("DEFAULT_SETTINGS", MARCA["valores_por_defecto"], "valores por defecto de la marca")
+    mapa("BUILTIN_SETTINGS", MARCA["opciones_internas"], "opciones internas de la marca")
+
+    # 2b. El servidor por defecto es de PowerCloud, no el publico de RustDesk: sin esto el cliente
+    #     muestra "configure su propio servidor" y limita calidad/FPS como en el servidor gratuito.
     reemplazar(
-        cfg,
-        "pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = Default::default();",
-        "pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = {\n"
-        "        // PowerCloud: valores por defecto de la marca\n"
-        "        let mut m = HashMap::new();\n"
-        f"{pares}"
-        "        RwLock::new(m)\n"
-        "    };",
+        "src/common.rs",
+        '    crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()',
+        "    false // PowerCloud: servidor propio por defecto",
     )
 
     # 3. Nombre del ejecutable (el codigo espera <nombre de app>.exe)

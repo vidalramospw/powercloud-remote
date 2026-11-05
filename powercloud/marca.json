@@ -8,5 +8,8 @@
   "codigo_fuente": "https://github.com/vidalramospw/powercloud-remote",
   "valores_por_defecto": {
     "verification-method": "use-temporary-password"
+  },
+  "opciones_internas": {
+    "hide-powered-by-me": "Y"
   }
 }
