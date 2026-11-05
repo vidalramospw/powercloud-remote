@@ -39,6 +39,7 @@ import 'desktop/pages/file_manager_page.dart' as desktop_file_manager;
 import 'desktop/pages/view_camera_page.dart' as desktop_view_camera;
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
 import 'models/model.dart';
+import 'powercloud/alias.dart';
 import 'models/platform_model.dart';
 
 import 'package:flutter_hbb/native/win32.dart'
@@ -2593,6 +2594,9 @@ connect(BuildContext context, String id,
     } catch (_) {}
   }
   id = id.replaceAll(' ', '');
+  final pcId = await pcResolveAlias(id);
+  if (pcId == null) return;
+  id = pcId;
   final oldId = id;
   id = await bind.mainHandleRelayId(id: id);
   forceRelay = id != oldId || forceRelay;
