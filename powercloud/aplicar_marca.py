@@ -27,7 +27,8 @@ errores: list[str] = []
 
 def reemplazar(ruta: str, original: str, nuevo: str, *, todas: bool = False) -> None:
     archivo = RAIZ / ruta
-    texto = archivo.read_text(encoding="utf-8", newline="")
+    with open(archivo, encoding="utf-8", newline="") as f:
+        texto = f.read()
     if nuevo in texto and original not in texto:
         print(f"  = {ruta}: ya aplicado")
         return
@@ -35,7 +36,8 @@ def reemplazar(ruta: str, original: str, nuevo: str, *, todas: bool = False) -> 
         errores.append(f"{ruta}: no se encontro el texto esperado:\n      {original!r}")
         return
     texto = texto.replace(original, nuevo) if todas else texto.replace(original, nuevo, 1)
-    archivo.write_text(texto, encoding="utf-8", newline="")
+    with open(archivo, "w", encoding="utf-8", newline="") as f:
+        f.write(texto)
     print(f"  + {ruta}")
 
 
