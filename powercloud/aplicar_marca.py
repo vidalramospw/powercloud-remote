@@ -95,6 +95,15 @@ def main() -> int:
                'VALUE "LegalCopyright", "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved." "\\0"',
                f'VALUE "LegalCopyright", "{MARCA["copyright"]}" "\\0"')
 
+    # 4b. Propiedades del portable autoextraible (libs/portable)
+    portable = "libs/portable/Cargo.toml"
+    reemplazar(portable, 'LegalCopyright = "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved."',
+               f'LegalCopyright = "{MARCA["copyright"]}"')
+    reemplazar(portable, 'ProductName = "RustDesk"',
+               f'CompanyName = "{MARCA["empresa"]}"\nProductName = "{visible}"')
+    reemplazar(portable, 'OriginalFilename = "rustdesk.exe"', f'OriginalFilename = "{tecnico}.exe"')
+    reemplazar(portable, 'FileDescription = "RustDesk Remote Desktop"', f'FileDescription = "{visible}"')
+
     # 5. Iconos y logos: se copian solo los que existan en powercloud/activos
     copias = {
         "icon.ico": ["res/icon.ico", "flutter/windows/runner/resources/app_icon.ico"],
