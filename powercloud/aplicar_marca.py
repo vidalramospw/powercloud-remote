@@ -125,6 +125,8 @@ def main() -> int:
         "128x128.png": ["res/128x128.png"],
         "128x128@2x.png": ["res/128x128@2x.png"],
         "icon.svg": ["flutter/assets/icon.svg"],
+        "logo_dark.png": ["flutter/assets/logo_dark.png"],
+        "logo_light.png": ["flutter/assets/logo_light.png"],
     }
     for origen, destinos in copias.items():
         src = ACTIVOS / origen
