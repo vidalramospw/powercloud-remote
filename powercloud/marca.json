@@ -1,0 +1,12 @@
+{
+  "nombre_visible": "PowerCloud Remote",
+  "nombre_tecnico": "PowerCloudRemote",
+  "empresa": "PowerCloud",
+  "copyright": "Copyright (c) 2026 PowerCloud. Basado en RustDesk (AGPL-3.0), (c) Purslane Tech Pte. Ltd.",
+  "servidor": "monitoreo.powercloud.com.sv",
+  "llave_publica": "i9LeDs97ugin9w0V6N16jLx7GuSB0H7oBiL7n98BA0s=",
+  "codigo_fuente": "https://github.com/vidalramospw/powercloud-remote",
+  "valores_por_defecto": {
+    "verification-method": "use-temporary-password"
+  }
+}
