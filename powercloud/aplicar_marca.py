@@ -29,7 +29,7 @@ def reemplazar(ruta: str, original: str, nuevo: str, *, todas: bool = False) -> 
     archivo = RAIZ / ruta
     with open(archivo, encoding="utf-8", newline="") as f:
         texto = f.read()
-    if nuevo in texto and original not in texto:
+    if nuevo in texto:
         print(f"  = {ruta}: ya aplicado")
         return
     if original not in texto:
@@ -88,6 +88,23 @@ def main() -> int:
         "src/common.rs",
         '    crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()',
         "    false // PowerCloud: servidor propio por defecto",
+    )
+
+    # 2c. Nada contra servidores de RustDesk:
+    #     - servidor API por defecto (inicio de sesion, libreta) -> el de PowerCloud (puerto 21114)
+    #     - consulta de actualizaciones a api.rustdesk.com -> desactivada
+    reemplazar(
+        "src/common.rs",
+        '    "https://admin.rustdesk.com".to_owned()',
+        f'    "http://{MARCA["servidor"]}:21114".to_owned() // PowerCloud',
+    )
+    reemplazar(
+        "src/common.rs",
+        "pub async fn do_check_software_update() -> hbb_common::ResultType<()> {",
+        "pub async fn do_check_software_update() -> hbb_common::ResultType<()> {\n"
+        "    if is_custom_client() {\n"
+        "        return Ok(()); // PowerCloud: sin consultas a api.rustdesk.com\n"
+        "    }",
     )
 
     # 3. Nombre del ejecutable (el codigo espera <nombre de app>.exe)
