@@ -32,6 +32,15 @@ lazy_static::lazy_static! {
     static ref TUNELES: Mutex<HashMap<u64, mpsc::UnboundedSender<Data>>> = Default::default();
 }
 
+/// Usuario "de Windows" especial con que el tecnico pide la terminal de administrador sin
+/// credenciales: la aprueba en pantalla la persona frente al equipo (si su usuario de Windows es
+/// administrador), igual que el "Si" de un UAC. Los <> no son validos en usuarios de Windows.
+pub const APROBACION_ADMIN: &str = "<pc-aprobacion-admin>";
+
+pub fn es_aprobacion_admin(terminal: bool, usuario: &str) -> bool {
+    terminal && usuario.trim() == APROBACION_ADMIN
+}
+
 pub fn iniciar() {
     let Ok(exe) = std::env::current_exe() else {
         return;

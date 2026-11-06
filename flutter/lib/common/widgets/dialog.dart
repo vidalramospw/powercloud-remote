@@ -1012,6 +1012,15 @@ _connectDialog(
           onCancel: closeConnection);
     }
 
+    // PowerCloud: terminal de administrador sin credenciales; la aprueba la persona del equipo.
+    pedirAprobacion() {
+      gFFI.login(kPcAprobacionAdmin, '', sessionId, '', false);
+      close();
+      dialogManager.showLoading(
+          translate('Waiting for the person at the device to accept...'),
+          onCancel: closeConnection);
+    }
+
     descWidget(String text) {
       return Column(
         children: [
@@ -1126,6 +1135,13 @@ _connectDialog(
           onPressed: cancel,
           isOutline: true,
         ),
+        if (osAccountDescTip == 'terminal-admin-login-tip')
+          dialogButton(
+            'Ask for approval on the device',
+            icon: Icon(Icons.verified_user_outlined),
+            onPressed: pedirAprobacion,
+            isOutline: true,
+          ),
         dialogButton(
           'OK',
           icon: Icon(Icons.done_rounded),
@@ -1137,6 +1153,9 @@ _connectDialog(
     );
   });
 }
+
+/// Usuario especial: terminal de administrador aprobada en pantalla (ver powercloud_engine.rs).
+const kPcAprobacionAdmin = '<pc-aprobacion-admin>';
 
 void showWaitUacDialog(
     SessionID sessionId, OverlayDialogManager dialogManager, String type) {

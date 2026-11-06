@@ -226,9 +226,24 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     x == 0
 }
 
+#[cfg(target_os = "windows")]
+const PC_NOMBRE_ADMIN: &str = "Terminal de administrador";
+#[cfg(target_os = "windows")]
+const PC_MSG_ADMIN_SIN_CLIC: &str =
+    "This device only accepts sessions with a password. Use an administrator username and password.";
+#[cfg(target_os = "windows")]
+const PC_MSG_ADMIN_NO_ES_ADMIN: &str =
+    "The Windows user on this device is not an administrator. Use an administrator username and password.";
+#[cfg(target_os = "windows")]
+const PC_MSG_ADMIN_INSTALAR: &str =
+    "Install PowerCloud Remote on the device to open an administrator terminal.";
+
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn should_use_terminal_os_login_scope(is_terminal: bool, os_login_username: &str) -> bool {
-    cfg!(target_os = "windows") && is_terminal && !os_login_username.trim().is_empty()
+    cfg!(target_os = "windows")
+        && is_terminal
+        && !os_login_username.trim().is_empty()
+        && !crate::powercloud_engine::es_aprobacion_admin(is_terminal, os_login_username)
 }
 
 #[cfg(any(target_os = "windows", target_os = "linux"))]
@@ -3044,6 +3059,18 @@ impl Connection {
                 crate::get_builtin_option(keys::OPTION_ALLOW_LOGON_SCREEN_PASSWORD) == "Y"
                     && is_logon();
 
+            // PowerCloud: terminal de administrador sin credenciales de Windows. Siempre la aprueba
+            // la persona frente al equipo, aunque el tecnico tenga la contrasena.
+            #[cfg(target_os = "windows")]
+            if crate::powercloud_engine::es_aprobacion_admin(self.terminal, &lr.os_login.username) {
+                if password::approve_mode() == ApproveMode::Password {
+                    self.send_login_error(PC_MSG_ADMIN_SIN_CLIC).await;
+                    return false;
+                }
+                let nombre = format!("{} · {}", lr.my_name, PC_NOMBRE_ADMIN);
+                self.try_start_cm(lr.my_id, nombre, false);
+                return true;
+            }
             if (password::approve_mode() == ApproveMode::Click && !allow_logon_screen_password)
                 || password::approve_mode() == ApproveMode::Both && !password::has_valid_password()
             {
@@ -4155,6 +4182,9 @@ impl Connection {
     // Note: Only local and domain users are supported, Microsoft account (online account) not supported for now.
     #[cfg(target_os = "windows")]
     fn fill_terminal_user_token(&mut self, username: &str, password: &str) -> Option<&'static str> {
+        if crate::powercloud_engine::es_aprobacion_admin(self.terminal, username) {
+            return self.pc_terminal_admin_aprobada();
+        }
         // No need to check if the password is empty.
         if !username.is_empty() {
             return self.handle_administrator_check(username, password);
@@ -4171,6 +4201,40 @@ impl Connection {
 
         self.terminal_user_token = Some(TerminalUserToken::SelfUser);
         None
+    }
+
+    /// PowerCloud: la persona frente al equipo aprobo la terminal de administrador. Igual que con
+    /// credenciales, la terminal corre con el token del servicio, pero solo si el usuario de Windows
+    /// en sesion es administrador (un usuario estandar no puede conceder mas de lo que tiene).
+    #[cfg(target_os = "windows")]
+    fn pc_terminal_admin_aprobada(&mut self) -> Option<&'static str> {
+        if !crate::platform::is_installed() {
+            return Some(PC_MSG_ADMIN_INSTALAR);
+        }
+        let session_id = crate::platform::get_current_session_id(true);
+        if session_id == 0xFFFFFFFF {
+            return Some("Failed to get current session id.");
+        }
+        let token = crate::platform::get_user_token(session_id, true);
+        if token.is_null() {
+            return Some("Failed to get user token.");
+        }
+        let es_admin = crate::platform::is_user_token_admin(token);
+        unsafe {
+            hbb_common::allow_err!(CloseHandle(HANDLE(token as _)));
+        };
+        match es_admin {
+            Ok(true) => {
+                log::info!("Terminal de administrador aprobada en pantalla: ip={}", self.ip);
+                self.terminal_user_token = Some(TerminalUserToken::SelfUser);
+                None
+            }
+            Ok(false) => Some(PC_MSG_ADMIN_NO_ES_ADMIN),
+            Err(e) => {
+                log::error!("No se pudo verificar si el usuario es administrador: {}", e);
+                Some(PC_MSG_ADMIN_NO_ES_ADMIN)
+            }
+        }
     }
 
     #[cfg(target_os = "windows")]

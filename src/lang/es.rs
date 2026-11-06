@@ -686,7 +686,7 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("New tab", "Nueva pestaña"),
         ("Keep terminal sessions on disconnect", "Mantener sesiones de terminal al desconectar"),
         ("Terminal (Run as administrator)", "Terminal (Ejecutar como administrador)"),
-        ("terminal-admin-login-tip", "Por favor, introduzca el usuario y la contrasseña del administrador en el lado controlado."),
+        ("terminal-admin-login-tip", "Escriba el usuario y la contraseña de un administrador del equipo remoto, o pida que la persona frente al equipo lo apruebe."),
         ("Failed to get user token.", "No se ha podido obtener el token de usuario"),
         ("Incorrect username or password.", "Nombre y contraseña incorrectos"),
         ("The user is not an administrator.", "El usuario no es un administrador."),
@@ -912,5 +912,9 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Larger text (Ctrl +)", "Letra más grande (Ctrl +)"),
         ("Copy", "Copiar"),
         ("Clear screen", "Limpiar pantalla"),
+        ("Ask for approval on the device", "Pedir aprobación en el equipo"),
+        ("This device only accepts sessions with a password. Use an administrator username and password.", "Este equipo solo acepta sesiones con contraseña. Use un usuario y contraseña de administrador."),
+        ("The Windows user on this device is not an administrator. Use an administrator username and password.", "El usuario de Windows de este equipo no es administrador. Use un usuario y contraseña de administrador."),
+        ("Install PowerCloud Remote on the device to open an administrator terminal.", "Instale PowerCloud Remote en el equipo para abrir una terminal de administrador."),
     ].iter().cloned().collect();
 }
