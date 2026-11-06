@@ -6,6 +6,9 @@
 
 import '../common.dart';
 
+/// Nombre visible del programa (el tecnico, sin espacio, es para carpetas y servicio).
+const kPcNombre = 'PowerCloud Remote';
+
 String pcT(String clave, [Object? valor]) {
   final t = translate(clave);
   return valor == null ? t : t.replaceFirst('%s', valor.toString());

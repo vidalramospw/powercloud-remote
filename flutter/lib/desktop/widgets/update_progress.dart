@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hbb/powercloud/textos.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:get/get.dart';
@@ -43,7 +44,7 @@ Future<void> handleUpdate(String releasePageUrl) async {
   gFFI.dialogManager.dismissAll();
   gFFI.dialogManager.show((setState, close, context) {
     return CustomAlertDialog(
-        title: Text(translate('Downloading {$appName}')),
+        title: Text(translate('Downloading {$kPcNombre}')),
         content: UpdateProgress(
                 releasePageUrl, verifiedDownloadUrl, downloadId, onCanceled)
             .marginSymmetric(horizontal: 8)
@@ -267,8 +268,8 @@ class UpdateProgressState extends State<UpdateProgress> {
     msgBox(
       gFFI.sessionId,
       'custom-nocancel',
-      '{$appName} Update',
-      '{$appName}-to-update-tip',
+      '{$kPcNombre} Update',
+      '{$kPcNombre}-to-update-tip',
       '',
       gFFI.dialogManager,
       onSubmit: () async {

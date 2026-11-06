@@ -124,6 +124,13 @@ def main() -> int:
                'VALUE "LegalCopyright", "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved." "\\0"',
                f'VALUE "LegalCopyright", "{MARCA["copyright"]}" "\\0"')
 
+    # 4a. Nombre visible (con espacio) en los textos y en el icono de la bandeja.
+    #     El nombre tecnico (sin espacio) se queda para carpetas, servicio y registro.
+    reemplazar("src/lang.rs", 's = s.replace("RustDesk", &app_name);',
+               f's = s.replace("RustDesk", "{visible}");', todas=True)
+    reemplazar("src/tray.rs", "                crate::get_app_name(),",
+               f'                "{visible}",', todas=True)
+
     # 4b. Propiedades del portable autoextraible (libs/portable)
     portable = "libs/portable/Cargo.toml"
     reemplazar(portable, 'LegalCopyright = "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved."',
