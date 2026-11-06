@@ -339,7 +339,22 @@ class _ToolbarTheme {
   static const double buttonSize = 32;
   static const double buttonHMargin = 2;
   static const double buttonVMargin = 6;
-  static const double iconRadius = 8;
+  static const double iconRadius = 10;
+
+  // PowerCloud: botones azules "suaves" (fondo translucido, icono azul) en vez de solidos.
+  static bool _pcSuave(Color c) => c == blueColor;
+  static Color pcIcono(BuildContext context, Color c) {
+    if (!_pcSuave(c)) return Colors.white;
+    return Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF38B6E8)
+        : MyTheme.accent;
+  }
+
+  static Color pcFondo(
+      BuildContext context, Color c, Color hoverC, bool hover) {
+    if (!_pcSuave(c)) return hover ? hoverC : c;
+    return const Color(0xFF38B6E8).withOpacity(hover ? 0.30 : 0.15);
+  }
   static const double elevation = 3;
 
   static double dividerSpaceToAction = isWindows ? 8 : 14;
@@ -3060,7 +3075,8 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
     final icon = widget.icon ??
         SvgPicture.asset(
           widget.assetName!,
-          colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          colorFilter: ColorFilter.mode(
+              _ToolbarTheme.pcIcono(context, widget.color), BlendMode.srcIn),
           width: _ToolbarTheme.buttonSize,
           height: _ToolbarTheme.buttonSize,
         );
@@ -3084,7 +3100,8 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
                     decoration: BoxDecoration(
                       borderRadius:
                           BorderRadius.circular(_ToolbarTheme.iconRadius),
-                      color: hover ? widget.hoverColor : widget.color,
+                      color: _ToolbarTheme.pcFondo(
+                          context, widget.color, widget.hoverColor, hover),
                     ),
                     child: icon)),
           )),
@@ -3145,7 +3162,8 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
     final icon = widget.icon ??
         SvgPicture.asset(
           widget.svg!,
-          colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          colorFilter: ColorFilter.mode(
+              _ToolbarTheme.pcIcono(context, widget.color), BlendMode.srcIn),
           width: _ToolbarTheme.buttonSize,
           height: _ToolbarTheme.buttonSize,
         );
@@ -3167,7 +3185,8 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
                         decoration: BoxDecoration(
                           borderRadius:
                               BorderRadius.circular(_ToolbarTheme.iconRadius),
-                          color: hover ? widget.hoverColor : widget.color,
+                          color: _ToolbarTheme.pcFondo(
+                              context, widget.color, widget.hoverColor, hover),
                         ),
                         child: icon))),
             menuChildren: widget

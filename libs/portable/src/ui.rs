@@ -4,10 +4,12 @@ use std::cell::RefCell;
 
 const GIF_DATA: &[u8] = include_bytes!("./res/spin.gif");
 const LABEL_DATA: &[u8] = include_bytes!("./res/label.png");
-const GIF_SIZE: i32 = 32;
-const BG_COLOR: [u8; 3] = [90, 90, 120];
-const BORDER_COLOR: [u8; 3] = [40, 40, 40];
-const GIF_DELAY: u64 = 30;
+// PowerCloud: ventana de carga 400 x 240 (celdas de 40), logo arriba y barra animada abajo.
+const GIF_SIZE: i32 = 40;
+const GIF_W: i32 = 240;
+const BG_COLOR: [u8; 3] = [15, 21, 28];
+const BORDER_COLOR: [u8; 3] = [36, 48, 61];
+const GIF_DELAY: u64 = 28;
 
 #[derive(Default)]
 pub struct BasicApp {
@@ -40,7 +42,7 @@ impl BasicApp {
             let image_data = image_source.frame(frame_index)?;
             let image_data = self
                 .decoder
-                .resize_image(&image_data, [GIF_SIZE as u32, GIF_SIZE as u32])?;
+                .resize_image(&image_data, [GIF_W as u32, GIF_SIZE as u32])?;
             let bmp = image_data.as_bitmap()?;
             self.gif_images.borrow_mut().push(bmp);
         }
@@ -82,8 +84,8 @@ mod basic_app_ui {
     impl nwg::NativeUi<BasicAppUi> for BasicApp {
         fn build_ui(mut data: BasicApp) -> Result<BasicAppUi, nwg::NwgError> {
             data.decoder = nwg::ImageDecoder::new()?;
-            let col_cnt: i32 = 7;
-            let row_cnt: i32 = 3;
+            let col_cnt: i32 = 10;
+            let row_cnt: i32 = 6;
             let border_width: i32 = 1;
             let window_size = (
                 GIF_SIZE * col_cnt + 2 * border_width,
@@ -111,7 +113,7 @@ mod basic_app_ui {
 
             nwg::ImageFrame::builder()
                 .parent(&data.bg_image)
-                .size((GIF_SIZE, GIF_SIZE))
+                .size((GIF_W, GIF_SIZE))
                 .background_color(Some(BG_COLOR))
                 .build(&mut data.gif_image)?;
 
@@ -162,8 +164,8 @@ mod basic_app_ui {
                 .margin([0, 0, 0, 0])
                 .max_column(Some(col_cnt as _))
                 .max_row(Some(row_cnt as _))
-                .child_item(GridLayoutItem::new(&ui.gif_image, 2, 1, 1, 1))
-                .child_item(GridLayoutItem::new(&ui.label_image, 3, 1, 3, 1))
+                .child_item(GridLayoutItem::new(&ui.label_image, 1, 1, 8, 2))
+                .child_item(GridLayoutItem::new(&ui.gif_image, 2, 4, 6, 1))
                 .build(&ui.inner_layout)?;
 
             // Events
