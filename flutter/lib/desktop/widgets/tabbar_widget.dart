@@ -1104,6 +1104,8 @@ class _TabState extends State<_Tab> with RestorationMixin {
                   : widget.label.value,
               textAlign: TextAlign.center,
               style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: isSelected
                       ? MyTheme.tabbar(context).selectedTextColor
                       : MyTheme.tabbar(context).unSelectedTextColor),
@@ -1154,8 +1156,6 @@ class _TabState extends State<_Tab> with RestorationMixin {
   @override
   Widget build(BuildContext context) {
     bool isSelected = widget.index == widget.selected;
-    bool showDivider =
-        widget.index != widget.selected - 1 && widget.index != widget.selected;
     RxBool hover = restoreHover.value.obs;
     return Ink(
       child: InkWell(
@@ -1164,28 +1164,38 @@ class _TabState extends State<_Tab> with RestorationMixin {
           restoreHover.value = value;
         },
         onTap: () => widget.onTap(),
-        child: Container(
-            decoration: isSelected && widget.selectedBorderColor != null
-                ? BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: widget.selectedBorderColor!,
-                        width: 1,
-                      ),
-                    ),
-                  )
-                : null,
-            child: Container(
+        // PowerCloud: pestana tipo "pildora" (fondo y borde con el color de la marca) en lugar del
+        // subrayado de una linea.
+        child: Obx(() {
+          // GetX exige leer el observable siempre (si no, Obx falla y se ve un bloque gris).
+          final enHover = hover.value;
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
+            decoration: BoxDecoration(
               color: isSelected
-                  ? widget.selectedTabBackgroundColor
-                  : widget.unSelectedTabBackgroundColor,
+                  ? (widget.selectedBorderColor ?? MyTheme.accent)
+                      .withOpacity(0.16)
+                  : enHover
+                      ? MyTheme.tabbar(context).hoverColor
+                      : widget.unSelectedTabBackgroundColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected
+                    ? (widget.selectedBorderColor ?? MyTheme.accent)
+                        .withOpacity(0.55)
+                    : Colors.transparent,
+              ),
+            ),
+            child: Container(
+              color: Colors.transparent,
               child: Row(
                 children: [
                   SizedBox(
                       // _kTabBarHeight also displays normally
-                      height: _showTabBarBottomDivider(widget.tabType)
-                          ? _kTabBarHeight - 1
-                          : _kTabBarHeight,
+                      height: (_showTabBarBottomDivider(widget.tabType)
+                              ? _kTabBarHeight - 1
+                              : _kTabBarHeight) -
+                          10,
                       child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -1195,19 +1205,11 @@ class _TabState extends State<_Tab> with RestorationMixin {
                                   tabSelected: isSelected,
                                   onClose: () => widget.onClose(),
                                 )))
-                          ])).paddingOnly(left: 10, right: 5),
-                  Offstage(
-                    offstage: !showDivider,
-                    child: VerticalDivider(
-                      width: 1,
-                      indent: _kDividerIndent,
-                      endIndent: _kDividerIndent,
-                      color: MyTheme.tabbar(context).dividerColor,
-                    ),
-                  )
+                          ])).paddingOnly(left: 10, right: 6),
                 ],
               ),
-            )),
+            ));
+        }),
       ),
     );
   }
@@ -1474,21 +1476,21 @@ class TabbarTheme extends ThemeExtension<TabbarTheme> {
       selectedIconColor: Color.fromARGB(255, 26, 26, 26),
       unSelectedIconColor: Color.fromARGB(255, 96, 96, 96),
       dividerColor: Color.fromARGB(255, 238, 238, 238),
-      hoverColor: Colors.white54,
+      hoverColor: Color(0x0F000000),
       closeHoverColor: Colors.white,
-      selectedTabBackgroundColor: Colors.white54);
+      selectedTabBackgroundColor: Colors.transparent);
 
   static const dark = TabbarTheme(
       selectedTabIconColor: MyTheme.accent,
-      unSelectedTabIconColor: Color.fromARGB(255, 30, 65, 98),
+      unSelectedTabIconColor: Color(0xFF5B7286),
       selectedTextColor: Colors.white,
-      unSelectedTextColor: Color.fromARGB(255, 192, 192, 192),
-      selectedIconColor: Color.fromARGB(255, 192, 192, 192),
-      unSelectedIconColor: Color.fromARGB(255, 255, 255, 255),
-      dividerColor: Color.fromARGB(255, 64, 64, 64),
-      hoverColor: Colors.black26,
+      unSelectedTextColor: Color(0xFF9AA8B6),
+      selectedIconColor: Color(0xFFC9D3DD),
+      unSelectedIconColor: Color(0xFFE6ECF2),
+      dividerColor: Color(0xFF243040),
+      hoverColor: Color(0x14FFFFFF),
       closeHoverColor: Colors.black,
-      selectedTabBackgroundColor: Colors.black26);
+      selectedTabBackgroundColor: Colors.transparent);
 
   @override
   ThemeExtension<TabbarTheme> copyWith({

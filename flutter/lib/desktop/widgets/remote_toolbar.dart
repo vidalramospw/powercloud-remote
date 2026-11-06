@@ -341,17 +341,33 @@ class _ToolbarTheme {
   static const double buttonVMargin = 6;
   static const double iconRadius = 10;
 
-  // PowerCloud: botones azules "suaves" (fondo translucido, icono azul) en vez de solidos.
+  // PowerCloud: botones "suaves" (fondo translucido + icono de color) en vez de solidos.
+  // Azul para acciones, gris para opciones apagadas (p. ej. fijar) y rojo para cerrar/grabando,
+  // que solo se vuelve rojo solido al pasar el mouse.
   static bool _pcSuave(Color c) => c == blueColor;
-  static Color pcIcono(BuildContext context, Color c) {
+  static bool _pcRojo(Color c) => c == redColor;
+  static bool _pcGris(Color c) => c == inactiveColor;
+  static Color pcIcono(BuildContext context, Color c, [bool hover = false]) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
+    if (_pcRojo(c)) return hover ? Colors.white : const Color(0xFFFF6B6B);
+    if (_pcGris(c)) return oscuro ? const Color(0xFFB4C0CC) : const Color(0xFF5B6B7A);
     if (!_pcSuave(c)) return Colors.white;
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF38B6E8)
-        : MyTheme.accent;
+    return oscuro ? const Color(0xFF38B6E8) : MyTheme.accent;
   }
 
   static Color pcFondo(
       BuildContext context, Color c, Color hoverC, bool hover) {
+    if (_pcRojo(c)) {
+      return hover
+          ? const Color(0xFFE5484D)
+          : const Color(0xFFFF6B6B).withOpacity(0.16);
+    }
+    if (_pcGris(c)) {
+      final base = Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black;
+      return base.withOpacity(hover ? 0.14 : 0.07);
+    }
     if (!_pcSuave(c)) return hover ? hoverC : c;
     return const Color(0xFF38B6E8).withOpacity(hover ? 0.30 : 0.15);
   }
@@ -3076,7 +3092,7 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
         SvgPicture.asset(
           widget.assetName!,
           colorFilter: ColorFilter.mode(
-              _ToolbarTheme.pcIcono(context, widget.color), BlendMode.srcIn),
+              _ToolbarTheme.pcIcono(context, widget.color, hover), BlendMode.srcIn),
           width: _ToolbarTheme.buttonSize,
           height: _ToolbarTheme.buttonSize,
         );
@@ -3163,7 +3179,7 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
         SvgPicture.asset(
           widget.svg!,
           colorFilter: ColorFilter.mode(
-              _ToolbarTheme.pcIcono(context, widget.color), BlendMode.srcIn),
+              _ToolbarTheme.pcIcono(context, widget.color, hover), BlendMode.srcIn),
           width: _ToolbarTheme.buttonSize,
           height: _ToolbarTheme.buttonSize,
         );

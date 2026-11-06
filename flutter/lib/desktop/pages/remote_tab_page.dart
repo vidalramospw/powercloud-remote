@@ -17,6 +17,7 @@ import 'package:flutter_hbb/desktop/widgets/material_mod_popup_menu.dart'
 import 'package:flutter_hbb/desktop/widgets/popup_menu.dart';
 import 'package:flutter_hbb/utils/multi_window_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../powercloud/ui/estado_conexion.dart';
 import 'package:get/get.dart';
 import 'package:bot_toast/bot_toast.dart';
 
@@ -179,15 +180,11 @@ class _ConnectionTabPageState extends State<ConnectionTabPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 icon,
+                label,
                 Tooltip(
                   message: '$msgConn\n$msgFingerprint',
-                  child: SvgPicture.asset(
-                    'assets/${connectionType.secure.value}${connectionType.direct.value}.svg',
-                    width: themeConf.iconSize,
-                    height: themeConf.iconSize,
-                  ).paddingOnly(right: 5),
+                  child: pcEstadoConexion(secure, direct),
                 ),
-                label,
                 unreadMessageCountBuilder(UnreadChatCountState.find(key))
                     .marginOnly(left: 4),
               ],

@@ -457,15 +457,10 @@ class _CmHeaderState extends State<_CmHeader>
     super.build(context);
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [
-            Color(0xff00bfe1),
-            Color(0xff0071ff),
-          ],
-        ),
+        // PowerCloud: tarjeta solida azul profundo de la marca (sin el degradado brillante).
+        borderRadius: BorderRadius.circular(14.0),
+        color: const Color(0xFF0F3B57),
+        border: Border.all(color: const Color(0xFF1E6A93)),
       ),
       margin: EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
       padding: EdgeInsets.only(
@@ -598,15 +593,15 @@ class _CmHeaderState extends State<_CmHeader>
       height: 70,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: str2color(client.name),
-        borderRadius: BorderRadius.circular(15.0),
+        color: MyTheme.accent,
+        borderRadius: BorderRadius.circular(14.0),
       ),
       child: Text(
-        client.name.isNotEmpty ? client.name[0] : '?',
+        client.name.isNotEmpty ? client.name[0].toUpperCase() : '?',
         style: TextStyle(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: Colors.white,
-          fontSize: 55,
+          fontSize: 38,
         ),
       ),
     );
@@ -628,7 +623,7 @@ class _PrivilegeBoardState extends State<_PrivilegeBoard> {
       Function(bool)? onTap, String tooltipText,
       {required bool canModify}) {
     return Tooltip(
-      message: "$tooltipText: ${enabled ? "ON" : "OFF"}",
+      message: "$tooltipText: ${enabled ? translate("On") : translate("Off")}",
       waitDuration: Duration.zero,
       child: Container(
         decoration: BoxDecoration(

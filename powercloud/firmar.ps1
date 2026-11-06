@@ -19,7 +19,8 @@
     Firmar un .exe que ya tengas en disco en vez de descargarlo.
 
 .PARAMETER Certificado
-    Texto a buscar en el sujeto del certificado. Por defecto "Open Source Developer".
+    Texto a buscar en el sujeto del certificado. Por defecto se usa el certificado de firma
+    de codigo de Certum vigente que venza mas tarde (Standard Code Signing in the Cloud).
 
 .EXAMPLE
     .\firmar.ps1
@@ -30,7 +31,7 @@
 param(
     [string]$RunId,
     [string]$Archivo,
-    [string]$Certificado = "Open Source Developer",
+    [string]$Certificado = "",
     [string]$Repo = "vidalramospw/powercloud-remote",
     [string]$Salida = (Join-Path $PSScriptRoot "..\firmados"),
     [string]$Timestamp = "http://time.certum.pl"
@@ -40,9 +41,9 @@ $ErrorActionPreference = "Stop"
 function Paso($t) { Write-Host "`n==> $t" -ForegroundColor Cyan }
 
 # 1. Certificado
-Paso "Buscando certificado de firma de codigo ('$Certificado')"
+Paso "Buscando certificado de firma de codigo de Certum"
 $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert |
-    Where-Object { $_.Subject -like "*$Certificado*" -and $_.NotAfter -gt (Get-Date) } |
+    Where-Object { $_.Issuer -like "*Certum*" -and $_.Subject -like "*$Certificado*" -and $_.NotAfter -gt (Get-Date) } |
     Sort-Object NotAfter -Descending | Select-Object -First 1
 if (-not $cert) {
     throw "No se encontro el certificado. Abra SimplySign Desktop, inicie sesion con el codigo de la app y vuelva a intentar."

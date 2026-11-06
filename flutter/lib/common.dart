@@ -3038,13 +3038,13 @@ String getWindowName({WindowType? overrideType}) {
     case WindowType.Main:
       return name;
     case WindowType.FileTransfer:
-      return "File Transfer - $name";
+      return "${translate('File Transfer')} - $name";
     case WindowType.ViewCamera:
-      return "View Camera - $name";
+      return "${translate('View Camera')} - $name";
     case WindowType.PortForward:
-      return "Port Forward - $name";
+      return "${translate('Port Forward')} - $name";
     case WindowType.RemoteDesktop:
-      return "Remote Desktop - $name";
+      return "${translate('Remote Desktop')} - $name";
     default:
       break;
   }

@@ -873,5 +873,12 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Type the ID or alias of the device you want to support", "Escriba el ID o el alias del equipo que va a atender"),
         ("This device", "Este equipo"),
         ("Share this ID and password with your technician", "Comparta este ID y contraseña con su técnico"),
+        ("Remote Desktop", "Escritorio remoto"),
+        ("File Transfer", "Transferencia de archivos"),
+        ("View Camera", "Ver cámara"),
+        ("Port Forward", "Túnel TCP"),
+        ("Direct", "Directa"),
+        ("Relayed", "Retransmitida"),
+        ("Unencrypted", "Sin cifrar"),
     ].iter().cloned().collect();
 }
