@@ -11,6 +11,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 import '../common.dart';
@@ -109,28 +110,72 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
 
   @override
   Widget build(BuildContext context) {
+    // Mismo lenguaje visual que el bloque del ID: barra de acento, etiqueta y valor.
     final color = Theme.of(context).textTheme.titleLarge?.color;
+    final hayAlias = _alias.isNotEmpty;
     return Container(
-      margin: const EdgeInsets.only(left: 29, right: 11, top: 2),
-      child: Row(
-        children: [
-          Text('Alias',
-              style: TextStyle(fontSize: 14, color: color?.withOpacity(0.5))),
-          const SizedBox(width: 10),
-          Expanded(
-            child: SelectableText(
-              _alias.isEmpty ? 'sin alias' : _alias,
-              maxLines: 1,
-              style: TextStyle(
-                  fontSize: 15,
-                  color: _alias.isEmpty ? color?.withOpacity(0.4) : color),
+      margin: const EdgeInsets.only(left: 20, right: 11, top: 6),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 2, color: MyTheme.accent),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 7),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text('Alias',
+                            style: TextStyle(
+                                fontSize: 14, color: color?.withOpacity(0.5))),
+                        const Spacer(),
+                        Tooltip(
+                          message: hayAlias ? 'Cambiar alias' : 'Crear alias',
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(15),
+                            onTap: () => _dialogo(context),
+                            child: Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: Icon(
+                                  hayAlias ? Icons.edit : Icons.add_circle_outline,
+                                  size: 18,
+                                  color: color?.withOpacity(0.6)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: GestureDetector(
+                      onDoubleTap: hayAlias
+                          ? () {
+                              Clipboard.setData(ClipboardData(text: _alias));
+                              showToast(translate('Copied'));
+                            }
+                          : null,
+                      onTap: hayAlias ? null : () => _dialogo(context),
+                      child: Tooltip(
+                        message: hayAlias ? _alias : 'Cree un alias para que el técnico lo encuentre fácil',
+                        child: Text(
+                          hayAlias ? _alias : 'Sin alias',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: hayAlias ? 17 : 14,
+                              color: hayAlias ? color : color?.withOpacity(0.4)),
+                        ),
+                      ),
+                    )),
+                  ],
+                ),
+              ),
             ),
-          ),
-          TextButton(
-            onPressed: () => _dialogo(context),
-            child: Text(_alias.isEmpty ? 'Crear' : 'Cambiar'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

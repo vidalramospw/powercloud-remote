@@ -177,8 +177,13 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('PowerCloud Remote · versión $kPcVersion',
-                style: TextStyle(fontSize: 12, color: color?.withOpacity(0.45))),
+            Tooltip(
+              message: 'PowerCloud Remote versión $kPcVersion',
+              child: Text('v$kPcVersion',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: color?.withOpacity(0.4))),
+            ),
             if (v != null)
               Container(
                 margin: const EdgeInsets.only(top: 8),

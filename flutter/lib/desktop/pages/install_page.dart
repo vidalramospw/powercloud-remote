@@ -233,9 +233,9 @@ class _InstallPageBodyState extends State<_InstallPageBody>
                           InkWell(
                             hoverColor: Colors.transparent,
                             onTap: () => launchUrlString(
-                                'https://www.powercloud.com.sv'),
+                                'https://monitoreo.powercloud.com.sv/acuerdo'),
                             child: Tooltip(
-                              message: 'https://www.powercloud.com.sv',
+                              message: 'https://monitoreo.powercloud.com.sv/acuerdo',
                               child: Row(children: [
                                 Icon(Icons.launch_outlined, size: 16)
                                     .marginOnly(right: 5),
