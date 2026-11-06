@@ -1,8 +1,9 @@
 # PowerCloud Remote: compilacion Android (APK arm64) con la marca PowerCloud.
 # Basado en el job build-rustdesk-android de flutter-build.yml (RustDesk 1.5.1).
 # Firma: si existen los secretos ANDROID_SIGNING_KEY / ANDROID_ALIAS / ANDROID_KEY_STORE_PASSWORD /
-# ANDROID_KEY_PASSWORD se firma con la llave de PowerCloud; si no, queda con la llave de prueba
-# (sirve para instalar a mano, no para la tienda).
+# ANDROID_KEY_PASSWORD, gradle firma el APK y el AAB (Google Play) con la llave de subida de PowerCloud;
+# si no, quedan con la llave de prueba (sirven para instalar a mano, no para la tienda).
+# versionCode = 2000 + numero de compilacion (siempre creciente, lo exige Play).
 name: PowerCloud Remote - Android
 
 on:
@@ -128,45 +129,52 @@ jobs:
           cargo install cargo-ndk --version ${{ env.CARGO_NDK_VERSION }} --locked
           ./flutter/ndk_arm64.sh
 
-      - name: Build APK
+      - name: Build APK y AAB
         shell: bash
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_ALIAS: ${{ secrets.ANDROID_ALIAS }}
+          ANDROID_KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           export PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
+          PC_VERSION_CODE=$((2000 + PC_BUILD))
           sed -i "s/org.gradle.jvmargs=-Xmx1024M/org.gradle.jvmargs=-Xmx2g/g" ./flutter/android/gradle.properties
-          sed -i "s/signingConfigs.release/signingConfigs.debug/g" ./flutter/android/app/build.gradle
+          if [ -n "$ANDROID_SIGNING_KEY" ]; then
+            # Llave de subida de PowerCloud (fuera del repositorio; se borra al terminar el job).
+            echo "$ANDROID_SIGNING_KEY" | base64 -d > "$RUNNER_TEMP/powercloud-upload.p12"
+            {
+              echo "storeFile=$RUNNER_TEMP/powercloud-upload.p12"
+              echo "storePassword=$ANDROID_KEY_STORE_PASSWORD"
+              echo "keyAlias=$ANDROID_ALIAS"
+              echo "keyPassword=$ANDROID_KEY_PASSWORD"
+            } > ./flutter/android/key.properties
+          else
+            sed -i "s/signingConfigs.release/signingConfigs.debug/g" ./flutter/android/app/build.gradle
+          fi
           mkdir -p ./flutter/android/app/src/main/jniLibs/${ABI}
           cp ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so ./flutter/android/app/src/main/jniLibs/${ABI}/
           cp ./target/${TARGET}/release/liblibrustdesk.so ./flutter/android/app/src/main/jniLibs/${ABI}/librustdesk.so
           pushd flutter
-          flutter build apk --release --target-platform android-arm64 --split-per-abi
+          flutter build apk --release --target-platform android-arm64 --split-per-abi --build-name=1.5.1 --build-number=${PC_VERSION_CODE}
+          flutter build appbundle --release --target-platform android-arm64 --build-name=1.5.1 --build-number=${PC_VERSION_CODE}
           popd
+          rm -f ./flutter/android/key.properties "$RUNNER_TEMP/powercloud-upload.p12"
           mkdir -p salida
           mv flutter/build/app/outputs/flutter-apk/app-${ABI}-release.apk salida/PowerCloudRemote-${PC_VERSION}-arm64.apk
-
-      - name: Setup sign tool version variable
-        if: env.ANDROID_SIGNING_KEY != ''
-        shell: bash
-        run: echo "ANDROID_SIGN_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)" >> $GITHUB_ENV
-
-      - uses: r0adkll/sign-android-release@349ebdef58775b1e0d8099458af0816dc79b6407 # v1
-        name: Firmar APK con la llave de PowerCloud
-        if: env.ANDROID_SIGNING_KEY != ''
-        id: firma
-        with:
-          releaseDirectory: ./salida
-          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
-          alias: ${{ secrets.ANDROID_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: ${{ env.ANDROID_SIGN_TOOL_VERSION }}
+          mv flutter/build/app/outputs/bundle/release/app-release.aab salida/PowerCloudRemote-${PC_VERSION}.aab
 
       - name: Subir APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: powercloud-remote-android-arm64
-          path: ${{ steps.firma.outputs.signedReleaseFile || format('salida/PowerCloudRemote-{0}-arm64.apk', env.PC_VERSION) }}
+          path: salida/PowerCloudRemote-${{ env.PC_VERSION }}-arm64.apk
+          if-no-files-found: error
+
+      - name: Subir AAB (Google Play)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: powercloud-remote-android-aab
+          path: salida/PowerCloudRemote-${{ env.PC_VERSION }}.aab
           if-no-files-found: error
