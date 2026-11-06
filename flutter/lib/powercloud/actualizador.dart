@@ -10,9 +10,13 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
+import 'package:win32/win32.dart' as win32;
+import 'package:window_manager/window_manager.dart';
 import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 import '../common.dart';
@@ -133,14 +137,20 @@ class PcActualizador {
   }
 
   /// Aplica la actualizacion. En la version instalada Windows pide permiso (UAC).
+  ///
+  /// La elevacion se pide desde esta misma ventana (ShellExecuteEx "runas" con la ventana como
+  /// duena). Si la pidiera un proceso en segundo plano, Windows no muestra el aviso al frente:
+  /// solo hace parpadear un boton en la barra de tareas y parece que no pasa nada.
   Future<void> aplicar(String ruta) async {
-    final r = ruta.replaceAll("'", "''");
     if (bind.mainIsInstalled()) {
-      await Process.start('powershell', [
-        '-NoProfile', '-WindowStyle', 'Hidden', '-Command',
-        "Start-Process -FilePath '$r' -ArgumentList '--update' -Verb RunAs",
-      ], mode: ProcessStartMode.detached);
+      try {
+        await windowManager.show();
+        await windowManager.focus();
+      } catch (_) {}
+      await Future.delayed(const Duration(milliseconds: 200));
+      _ejecutarElevado(ruta, '--update');
     } else {
+      final r = ruta.replaceAll("'", "''");
       final actual = Platform.resolvedExecutable.replaceAll("'", "''");
       await Process.start('powershell', [
         '-NoProfile', '-WindowStyle', 'Hidden', '-Command',
@@ -148,6 +158,41 @@ class PcActualizador {
             "Get-Process | Where-Object { \$_.Path -eq '$actual' } | Stop-Process -Force; "
             "Start-Sleep -Seconds 1; Start-Process -FilePath '$r'",
       ], mode: ProcessStartMode.detached);
+    }
+  }
+
+  void _ejecutarElevado(String exe, String argumentos) {
+    final info = calloc<win32.SHELLEXECUTEINFO>();
+    final verbo = 'runas'.toNativeUtf16();
+    final archivo = exe.toNativeUtf16();
+    final params = argumentos.toNativeUtf16();
+    final carpeta = File(exe).parent.path.toNativeUtf16();
+    try {
+      final hwnd = win32.GetForegroundWindow();
+      final ref = info.ref
+        ..cbSize = sizeOf<win32.SHELLEXECUTEINFO>()
+        ..fMask = 0x00000040 // SEE_MASK_NOCLOSEPROCESS
+        ..hwnd = hwnd
+        ..lpVerb = verbo
+        ..lpFile = archivo
+        ..lpParameters = params
+        ..lpDirectory = carpeta
+        ..nShow = 1; // SW_SHOWNORMAL
+      if (win32.ShellExecuteEx(info) == 0) {
+        final err = win32.GetLastError();
+        if (err == 1223) {
+          // ERROR_CANCELLED
+          throw 'Se canceló el permiso de Windows. No se instaló la actualización.';
+        }
+        throw 'Windows no pudo iniciar la actualización (código $err).';
+      }
+      if (ref.hProcess != 0) win32.CloseHandle(ref.hProcess);
+    } finally {
+      calloc.free(verbo);
+      calloc.free(archivo);
+      calloc.free(params);
+      calloc.free(carpeta);
+      calloc.free(info);
     }
   }
 }
@@ -187,23 +232,47 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
             if (v != null)
               Container(
                 margin: const EdgeInsets.only(top: 8),
-                padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFF38B6E8).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: const Color(0xFF38B6E8).withOpacity(0.5)),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.system_update_alt, size: 18, color: Color(0xFF38B6E8)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text('Nueva versión ${v.version} disponible',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Row(
+                      children: [
+                        const Icon(Icons.system_update_alt, size: 16, color: Color(0xFF38B6E8)),
+                        const SizedBox(width: 6),
+                        const Expanded(
+                          child: Text('Nueva versión',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => _dialogo(v),
-                      child: const Text('Actualizar'),
+                    const SizedBox(height: 2),
+                    Text('${v.version} disponible',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: color?.withOpacity(0.7))),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 30,
+                      child: ElevatedButton(
+                        onPressed: () => _dialogo(v),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF38B6E8),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        ),
+                        child: const Text('Actualizar', style: TextStyle(fontSize: 13)),
+                      ),
                     ),
                   ],
                 ),
@@ -234,7 +303,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
           });
           await PcActualizador.instancia.verificar(v, ruta);
           setState(() => msg = bind.mainIsInstalled()
-              ? 'Acepte el aviso de Windows para instalar la actualización.'
+              ? 'Acepte el aviso de Windows para instalar la actualización. Si no lo ve, búsquelo en la barra de tareas.'
               : 'Reiniciando PowerCloud Remote con la nueva versión…');
           await PcActualizador.instancia.aplicar(ruta);
         } catch (e) {
