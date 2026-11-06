@@ -3233,9 +3233,13 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
   @override
   Widget build(BuildContext context) {
     assert(widget.assetName != null || widget.icon != null);
-    final icon = _ToolbarTheme.pcContenido(context, widget.assetName,
-        widget.icon, widget.tooltip, widget.color, hover);
     final tamano = _ToolbarTheme.pcTamano(widget.assetName, widget.width);
+    // Centrado en todo el ancho del boton (MenuItemButton alinea su contenido a la izquierda).
+    final icon = SizedBox(
+        width: tamano.width,
+        height: tamano.height,
+        child: _ToolbarTheme.pcContenido(context, widget.assetName,
+            widget.icon, widget.tooltip, widget.color, hover));
     var button = SizedBox(
       width: tamano.width,
       height: tamano.height,
@@ -3315,9 +3319,12 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
   @override
   Widget build(BuildContext context) {
     assert(widget.svg != null || widget.icon != null);
-    final icon = _ToolbarTheme.pcContenido(
-        context, widget.svg, widget.icon, widget.tooltip, widget.color, hover);
     final tamano = _ToolbarTheme.pcTamano(widget.svg, widget.width);
+    final icon = SizedBox(
+        width: tamano.width,
+        height: tamano.height,
+        child: _ToolbarTheme.pcContenido(
+            context, widget.svg, widget.icon, widget.tooltip, widget.color, hover));
     final button = SizedBox(
         width: tamano.width,
         height: tamano.height,
