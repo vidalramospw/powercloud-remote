@@ -234,7 +234,16 @@ fn estado() -> String {
     } else {
         String::new()
     };
+    // Identidad del agente derivada de la llave del equipo: estable mientras el equipo conserve su ID,
+    // aunque se borre la carpeta del agente o se use sin instalar.
+    let semilla = {
+        let mut h = Sha256::new();
+        h.update(b"PowerCloudEngine/identidad/1");
+        h.update(&Config::get_key_pair().0);
+        hex(&h.finalize())
+    };
     serde_json::json!({
+        "semilla": semilla,
         "id": Config::get_id(),
         "relay": relay(),
         "tunel": crate::server::Connection::is_permission_enabled_locally("enable-tunnel"),

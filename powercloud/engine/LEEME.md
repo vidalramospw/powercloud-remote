@@ -9,4 +9,4 @@ solo por su entrada y salida estándar. Si el binario no está, PowerCloud Remot
 
 | Plataforma | Archivo | Versión del Engine |
 |---|---|---|
-| Windows x64 | windows-x64/pce-agente.exe | bba3d5c |
+| Windows x64 | windows-x64/pce-agente.exe | 2b9cce8 |
