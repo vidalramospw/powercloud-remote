@@ -6406,7 +6406,7 @@ pub fn claim_pending_switch_sides_uuid(id: &str, uuid: &uuid::Uuid) -> bool {
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 // IPC bootstrap summary:
 // - Start CM when missing, then bridge bidirectional messages between this task and CM IPC.
-async fn start_ipc(
+pub(crate) async fn start_ipc(
     mut rx_to_cm: mpsc::UnboundedReceiver<ipc::Data>,
     tx_from_cm: mpsc::UnboundedSender<ipc::Data>,
 ) -> ResultType<()> {

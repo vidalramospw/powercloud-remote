@@ -519,7 +519,7 @@ class _CmHeaderState extends State<_CmHeader>
                 if (client.portForward.isNotEmpty)
                   FittedBox(
                     child: Text(
-                      "Port Forward: ${client.portForward}",
+                      "${translate('Port Forward')}: ${client.portForward}",
                       style: TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ),
