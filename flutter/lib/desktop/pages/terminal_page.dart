@@ -6,6 +6,10 @@ import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
 import 'package:flutter_hbb/models/model.dart';
 import 'package:flutter_hbb/models/terminal_model.dart';
 import 'package:flutter_hbb/models/terminal_mouse_handler.dart';
+import 'package:flutter_hbb/models/terminal_copy_shortcut.dart';
+import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:flutter_hbb/powercloud/ui/tema_terminal.dart';
+import 'package:flutter_hbb/powercloud/textos.dart';
 import 'terminal_connection_manager.dart';
 
 class TerminalPage extends StatefulWidget {
@@ -56,6 +60,110 @@ class _TerminalPageState extends State<TerminalPage>
   double? _cellHeight;
   final FocusNode _terminalFocusNode = FocusNode(canRequestFocus: false);
   StreamSubscription<DesktopTabState>? _tabStateSubscription;
+  double _letra = double.tryParse(
+          bind.mainGetLocalOption(key: 'pc-terminal-letra')) ??
+      kPcTerminalLetraPorDefecto;
+
+  void _cambiarLetra(double delta, {bool reiniciar = false}) {
+    setState(() {
+      _letra = reiniciar
+          ? kPcTerminalLetraPorDefecto
+          : (_letra + delta).clamp(kPcTerminalLetraMin, kPcTerminalLetraMax);
+    });
+    bind.mainSetLocalOption(key: 'pc-terminal-letra', value: '$_letra');
+  }
+
+  Future<void> _copiar() async {
+    final seleccion = _terminalModel.terminalController.selection;
+    if (seleccion == null) return;
+    final texto = _terminalModel.terminal.buffer.getText(seleccion);
+    _terminalModel.terminalController.clearSelection();
+    await Clipboard.setData(ClipboardData(text: texto));
+    showToast(translate('Copied'));
+  }
+
+  Future<void> _pegar() async {
+    final data = await Clipboard.getData('text/plain');
+    final texto = data?.text;
+    if (texto != null && texto.isNotEmpty) _terminalModel.terminal.paste(texto);
+    _terminalFocusNode.requestFocus();
+  }
+
+  /// Ctrl+L limpia la pantalla en PowerShell (PSReadLine) y en bash.
+  void _limpiar() {
+    _terminalModel.terminal.textInput('\x0c');
+    _terminalFocusNode.requestFocus();
+  }
+
+  /// Ctrl + / Ctrl - / Ctrl 0 cambian el tamano de letra; lo demas sigue igual.
+  KeyEventResult _teclas(FocusNode nodo, KeyEvent evento) {
+    if (evento is KeyDownEvent && HardwareKeyboard.instance.isControlPressed) {
+      final k = evento.logicalKey;
+      if (k == LogicalKeyboardKey.equal || k == LogicalKeyboardKey.add || k == LogicalKeyboardKey.numpadAdd) {
+        _cambiarLetra(1);
+        return KeyEventResult.handled;
+      }
+      if (k == LogicalKeyboardKey.minus || k == LogicalKeyboardKey.numpadSubtract) {
+        _cambiarLetra(-1);
+        return KeyEventResult.handled;
+      }
+      if (k == LogicalKeyboardKey.digit0 || k == LogicalKeyboardKey.numpad0) {
+        _cambiarLetra(0, reiniciar: true);
+        return KeyEventResult.handled;
+      }
+    }
+    return terminalCopyHandler(
+        _terminalModel.terminal, _terminalModel.terminalController)(nodo, evento);
+  }
+
+  Widget _barra(BuildContext context) {
+    Widget boton(IconData icono, String texto, VoidCallback accion) => Tooltip(
+          message: texto,
+          child: TextButton.icon(
+            onPressed: accion,
+            icon: Icon(icono, size: 16),
+            label: Text(texto, style: const TextStyle(fontSize: 12.5)),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFC9D3DD),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              minimumSize: const Size(0, 30),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        );
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: const BoxDecoration(
+        color: Color(0xFF111923),
+        border: Border(bottom: BorderSide(color: Color(0xFF243040))),
+      ),
+      child: Row(children: [
+        boton(Icons.copy_rounded, pcT('Copy'), _copiar),
+        boton(Icons.content_paste_rounded, pcT('Paste'), _pegar),
+        boton(Icons.cleaning_services_outlined, pcT('Clear screen'), _limpiar),
+        const Spacer(),
+        IconButton(
+          tooltip: pcT('Smaller text (Ctrl -)'),
+          icon: const Icon(Icons.text_decrease_rounded, size: 18),
+          color: const Color(0xFFC9D3DD),
+          onPressed: () => _cambiarLetra(-1),
+        ),
+        SizedBox(
+          width: 34,
+          child: Text('${_letra.round()}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF9AA8B6), fontSize: 12.5)),
+        ),
+        IconButton(
+          tooltip: pcT('Larger text (Ctrl +)'),
+          icon: const Icon(Icons.text_increase_rounded, size: 18),
+          color: const Color(0xFFC9D3DD),
+          onPressed: () => _cambiarLetra(1),
+        ),
+      ]),
+    );
+  }
 
   @override
   void initState() {
@@ -199,8 +307,10 @@ class _TerminalPageState extends State<TerminalPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: LayoutBuilder(
+      backgroundColor: pcTemaTerminal.background,
+      body: Column(children: [
+        _barra(context),
+        Expanded(child: LayoutBuilder(
         builder: (context, constraints) {
           final heightPx = constraints.maxHeight;
           return TerminalMouseInteraction(
@@ -209,7 +319,10 @@ class _TerminalPageState extends State<TerminalPage>
             focusNode: _terminalFocusNode,
             // Note: autofocus is not used here because focus is managed manually
             // via _onTabStateChanged() to handle tab switching properly.
-            backgroundOpacity: 0.7,
+            textStyle: pcEstiloTerminal(_letra),
+            theme: pcTemaTerminal,
+            onKeyEvent: _teclas,
+            backgroundOpacity: 1,
             padding: _calculatePadding(heightPx),
             onSecondaryTapDown: (details, offset) async {
               final selection = _terminalModel.terminalController.selection;
@@ -227,7 +340,8 @@ class _TerminalPageState extends State<TerminalPage>
             },
           );
         },
-      ),
+      )),
+      ]),
     );
   }
 

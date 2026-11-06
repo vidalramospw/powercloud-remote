@@ -908,5 +908,9 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Sign in required", "Inicie sesión"),
         ("To connect to other devices, sign in with your PowerCloud technician account.", "Para conectarse a otros equipos, inicie sesión con su cuenta de técnico de PowerCloud."),
         ("Sign in", "Iniciar sesión"),
+        ("Smaller text (Ctrl -)", "Letra más chica (Ctrl -)"),
+        ("Larger text (Ctrl +)", "Letra más grande (Ctrl +)"),
+        ("Copy", "Copiar"),
+        ("Clear screen", "Limpiar pantalla"),
     ].iter().cloned().collect();
 }
