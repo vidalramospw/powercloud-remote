@@ -226,7 +226,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
     return ValueListenableBuilder<PcVersionPublicada?>(
       valueListenable: PcActualizador.instancia.disponible,
       builder: (context, v, _) => Container(
-        margin: const EdgeInsets.only(left: 20, right: 11, top: 6),
+        margin: const EdgeInsets.only(left: 14, right: 14, top: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -273,7 +273,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
                       child: ElevatedButton(
                         onPressed: () => pcDialogoActualizar(v),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF38B6E8),
+                          backgroundColor: MyTheme.accent,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: EdgeInsets.zero,

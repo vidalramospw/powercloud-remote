@@ -409,7 +409,8 @@ class MyTheme {
         bodySmall: TextStyle(fontSize: 12, color: Color(0xFF1B2430), height: 1.25),
         bodyMedium:
             TextStyle(fontSize: 14, color: Color(0xFF1B2430), height: 1.25),
-        labelLarge: TextStyle(fontSize: 16.0, color: MyTheme.accent80)),
+        labelLarge: TextStyle(
+            fontSize: 14.0, fontWeight: FontWeight.w600, color: MyTheme.accent80)),
     cardColor: grayBg,
     hintColor: Color(0xFFAAAAAA),
     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -508,8 +509,8 @@ class MyTheme {
       bodySmall: TextStyle(fontSize: 12, height: 1.25),
       bodyMedium: TextStyle(fontSize: 14, height: 1.25),
       labelLarge: TextStyle(
-        fontSize: 16.0,
-        fontWeight: FontWeight.bold,
+        fontSize: 14.0,
+        fontWeight: FontWeight.w600,
         color: accent80,
       ),
     ),
