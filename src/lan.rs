@@ -311,7 +311,10 @@ fn spawn_wait_responses(sockets: Vec<UdpSocket>) -> UnboundedReceiver<config::Di
 }
 
 async fn handle_received_peers(mut rx: UnboundedReceiver<config::DiscoveryPeer>) -> ResultType<()> {
+    // PowerCloud: el propio equipo no se lista (con varias tarjetas de red el filtro por MAC falla).
+    let mi_id = Config::get_id();
     let mut peers = config::LanPeers::load().peers;
+    peers.retain(|p| p.id != mi_id);
     peers.iter_mut().for_each(|peer| {
         peer.online = false;
     });
@@ -322,6 +325,9 @@ async fn handle_received_peers(mut rx: UnboundedReceiver<config::DiscoveryPeer>)
         tokio::select! {
             data = rx.recv() => match data {
                 Some(mut peer) => {
+                    if peer.id == mi_id {
+                        continue;
+                    }
                     let in_response_set = !response_set.insert(peer.id.clone());
                     if let Some(pos) = peers.iter().position(|x| x.is_same_peer(&peer) ) {
                         let peer1 = peers.remove(pos);
