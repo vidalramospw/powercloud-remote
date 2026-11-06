@@ -352,6 +352,7 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
                 ),
               ],
             ),
+            if (esPrivado) const SizedBox(height: 16),
             if (esPrivado)
               TextField(
                 controller: codigo,
