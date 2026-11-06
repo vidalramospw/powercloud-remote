@@ -14,6 +14,7 @@ Licencia: este fork sigue siendo AGPL-3.0. Se conserva el credito a RustDesk.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -131,6 +132,17 @@ def main() -> int:
                f'CompanyName = "{MARCA["empresa"]}"\nProductName = "{visible}"')
     reemplazar(portable, 'OriginalFilename = "rustdesk.exe"', f'OriginalFilename = "{tecnico}.exe"')
     reemplazar(portable, 'FileDescription = "RustDesk Remote Desktop"', f'FileDescription = "{visible}"')
+
+    # 4c. Version PowerCloud = <version RustDesk>.<numero de compilacion> (PC_BUILD lo pone CI).
+    #     Va en el .exe (pubspec -> Runner.rc), en la leyenda de la app y en el actualizador.
+    build = os.environ.get("PC_BUILD", "0").strip() or "0"
+    if not build.isdigit():
+        errores.append(f"PC_BUILD debe ser numerico: {build!r}")
+        build = "0"
+    reemplazar("flutter/pubspec.yaml", "version: 1.5.1+69", f"version: 1.5.1+{build}")
+    reemplazar("flutter/lib/powercloud/version.dart", "const kPcVersion = '1.5.1.0';",
+               f"const kPcVersion = '1.5.1.{build}';")
+    print(f"  version PowerCloud: 1.5.1.{build}")
 
     # 5. Iconos y logos: se copian solo los que existan en powercloud/activos
     copias = {

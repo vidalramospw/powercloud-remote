@@ -42,7 +42,7 @@ if (-not $Archivo) {
     if (-not $Archivo) { throw "No hay .exe en ..\firmados. Ejecute primero firmar.ps1 o indique -Archivo." }
 }
 $Archivo = (Resolve-Path $Archivo).Path
-if (-not $Version -and ([IO.Path]::GetFileName($Archivo) -match '(\d+\.\d+\.\d+)')) { $Version = $Matches[1] }
+if (-not $Version -and ([IO.Path]::GetFileName($Archivo) -match '(\d+\.\d+\.\d+(?:\.\d+)?)')) { $Version = $Matches[1] }
 
 Paso "Archivo"
 $info = Get-Item $Archivo
