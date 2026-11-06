@@ -1,3 +1,4 @@
+import 'package:flutter_hbb/powercloud/textos.dart';
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -651,7 +652,7 @@ class _DesktopTabState extends State<DesktopTab>
                         Offstage(
                             offstage: !showTitle,
                             child: const Text(
-                              "RustDesk",
+                              kPcNombre,
                               style: TextStyle(fontSize: 13),
                             ).marginOnly(left: 2))
                       ]).marginOnly(
