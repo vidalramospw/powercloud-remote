@@ -40,6 +40,7 @@ import 'desktop/pages/view_camera_page.dart' as desktop_view_camera;
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
 import 'models/model.dart';
 import 'powercloud/alias.dart';
+import 'powercloud/textos.dart';
 import 'models/platform_model.dart';
 
 import 'package:flutter_hbb/native/win32.dart'
@@ -2597,6 +2598,10 @@ connect(BuildContext context, String id,
   final pcId = await pcResolveAlias(id);
   if (pcId == null) return;
   id = pcId;
+  if (!pcIdPermitido(id)) {
+    showToast(pcT('Only PowerCloud Remote IDs or aliases can be used'));
+    return;
+  }
   final oldId = id;
   id = await bind.mainHandleRelayId(id: id);
   forceRelay = id != oldId || forceRelay;

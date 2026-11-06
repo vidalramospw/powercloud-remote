@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/powercloud/actualizador.dart';
+import 'package:flutter_hbb/powercloud/textos.dart';
 import 'package:flutter_hbb/powercloud/version.dart';
 import 'package:flutter_hbb/common/widgets/audio_input.dart';
 import 'package:flutter_hbb/common/widgets/setting_widgets.dart';
@@ -1457,9 +1458,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
     bool enabled = !locked;
     return _Card(title: 'Security', children: [
       shareRdp(context, enabled),
-      _OptionCheckBox(context, 'Deny LAN discovery', 'enable-lan-discovery',
-          reverse: true, enabled: enabled),
-      ...directIp(context),
+      // PowerCloud: sin descubrimiento en red local ni acceso directo por IP: todo pasa por el servidor.
       whitelist(),
       idWhitelist(),
       ...autoDisconnect(context),
@@ -2588,7 +2587,7 @@ class _AboutState extends State<_About> {
       final scrollController = ScrollController();
       return SingleChildScrollView(
         controller: scrollController,
-        child: _Card(title: 'Acerca de PowerCloud Remote', children: [
+        child: _Card(title: 'About PowerCloud Remote', children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2614,7 +2613,7 @@ class _AboutState extends State<_About> {
               InkWell(
                   onTap: () => launchUrlString(
                       'https://monitoreo.powercloud.com.sv/descargar'),
-                  child: const Text('Descargas', style: linkStyle)
+                  child: Text(pcT('Downloads'), style: linkStyle)
                       .marginSymmetric(vertical: 4.0)),
               Container(
                 decoration: const BoxDecoration(color: Color(0xFF1A8FC4)),
@@ -2631,9 +2630,9 @@ class _AboutState extends State<_About> {
                             '© ${DateTime.now().year} PowerCloud El Salvador',
                             style: const TextStyle(color: Colors.white),
                           ),
-                          const Text(
-                            'Soporte remoto con su autorización.',
-                            style: TextStyle(
+                          Text(
+                            pcT('Remote support with your permission.'),
+                            style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white),
                           )

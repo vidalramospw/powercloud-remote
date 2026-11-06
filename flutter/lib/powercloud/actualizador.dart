@@ -21,6 +21,7 @@ import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 import '../common.dart';
 import '../models/platform_model.dart';
+import 'textos.dart';
 import 'version.dart';
 
 const _cadaCuanto = Duration(hours: 4);
@@ -72,10 +73,10 @@ class PcActualizador {
     try {
       final api = await bind.mainGetApiServer();
       final resp = await http.get(Uri.parse('$api/api/descargas/actual'));
-      if (resp.statusCode != 200) throw 'El servidor respondió ${resp.statusCode}';
+      if (resp.statusCode != 200) throw pcT('The server responded %s', resp.statusCode);
       final j = jsonDecode(decode_http_response(resp));
       if (j is! Map<String, dynamic> || j['error'] != null) {
-        throw 'No hay versiones publicadas';
+        throw pcT('No versions have been published');
       }
       final v = PcVersionPublicada(j);
       if (v.version.isEmpty || pcCompararVersiones(v.version, kPcVersion) <= 0) {
@@ -85,7 +86,7 @@ class PcActualizador {
       disponible.value = v;
       if (!manual && _avisada != v.version) {
         _avisada = v.version;
-        showToast('Hay una nueva versión de PowerCloud Remote: ${v.version}');
+        showToast(pcT('A new version of PowerCloud Remote is available: %s', v.version));
       }
       return v;
     } catch (e) {
@@ -106,7 +107,7 @@ class PcActualizador {
     try {
       final req = await cliente.getUrl(Uri.parse('$api${v.url}'));
       final resp = await req.close();
-      if (resp.statusCode != 200) throw 'El servidor respondió ${resp.statusCode}';
+      if (resp.statusCode != 200) throw pcT('The server responded %s', resp.statusCode);
       final total = resp.contentLength > 0 ? resp.contentLength : v.tamano;
       final salida = archivo.openWrite();
       var recibido = 0;
@@ -134,12 +135,12 @@ class PcActualizador {
           "\$s=(Get-AuthenticodeSignature -LiteralPath '$r').Status; Write-Output \"\$h|\$s\"",
     ]);
     final partes = res.stdout.toString().trim().split('|');
-    if (partes.length != 2) throw 'No se pudo verificar el archivo descargado';
+    if (partes.length != 2) throw pcT('Could not verify the downloaded file');
     if (v.sha256.isEmpty || partes[0].toUpperCase() != v.sha256) {
-      throw 'El archivo descargado no coincide con el publicado (SHA-256). No se instaló.';
+      throw pcT('The downloaded file does not match the published one (SHA-256). It was not installed.');
     }
     if (v.firmante.isNotEmpty && partes[1] != 'Valid') {
-      throw 'La firma digital del archivo no es válida (${partes[1]}). No se instaló.';
+      throw pcT('The digital signature of the file is not valid (%s). It was not installed.', partes[1]);
     }
   }
 
@@ -189,9 +190,9 @@ class PcActualizador {
         final err = win32.GetLastError();
         if (err == 1223) {
           // ERROR_CANCELLED
-          throw 'Se canceló el permiso de Windows. No se instaló la actualización.';
+          throw pcT('The Windows permission was canceled. The update was not installed.');
         }
-        throw 'Windows no pudo iniciar la actualización (código $err).';
+        throw pcT('Windows could not start the update (code %s).', err);
       }
       if (ref.hProcess != 0) win32.CloseHandle(ref.hProcess);
     } finally {
@@ -230,7 +231,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Tooltip(
-              message: 'PowerCloud Remote versión $kPcVersion',
+              message: pcT('PowerCloud Remote version %s', kPcVersion),
               child: Text('v$kPcVersion',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -252,8 +253,8 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
                       children: [
                         const Icon(Icons.system_update_alt, size: 16, color: Color(0xFF38B6E8)),
                         const SizedBox(width: 6),
-                        const Expanded(
-                          child: Text('Nueva versión',
+                        Expanded(
+                          child: Text(pcT('New version'),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
@@ -261,7 +262,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text('${v.version} disponible',
+                    Text(pcT('%s available', v.version),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: color?.withOpacity(0.7))),
@@ -278,7 +279,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         ),
-                        child: const Text('Actualizar', style: TextStyle(fontSize: 13)),
+                        child: Text(translate('Update'), style: const TextStyle(fontSize: 13)),
                       ),
                     ),
                   ],
@@ -308,12 +309,12 @@ void pcDialogoActualizar(PcVersionPublicada v) {
             .descargar(v, (p) => setState(() => progreso = p));
         setState(() {
           progreso = null;
-          msg = 'Verificando…';
+          msg = pcT('Verifying…');
         });
         await PcActualizador.instancia.verificar(v, ruta);
         setState(() => msg = bind.mainIsInstalled()
-            ? 'Acepte el aviso de Windows para instalar la actualización. Si no lo ve, búsquelo en la barra de tareas.'
-            : 'Reiniciando PowerCloud Remote con la nueva versión…');
+            ? pcT('Accept the Windows prompt to install the update. If you do not see it, look for it in the taskbar.')
+            : pcT('Restarting PowerCloud Remote with the new version…'));
         await PcActualizador.instancia.aplicar(ruta);
       } catch (e) {
         setState(() {
@@ -325,21 +326,20 @@ void pcDialogoActualizar(PcVersionPublicada v) {
     }
 
     return CustomAlertDialog(
-      title: Text('Actualizar a la versión ${v.version}'),
+      title: Text(pcT('Update to version %s', v.version)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Versión actual: $kPcVersion'),
-          if (v.firmante.isNotEmpty) Text('Firmado por: ${v.firmante}'),
+          Text(pcT('Current version: %s', kPcVersion)),
+          if (v.firmante.isNotEmpty) Text(pcT('Signed by: %s', v.firmante)),
           if (v.notas.isNotEmpty) ...[
             const SizedBox(height: 10),
-            const Text('Novedades', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(pcT('What is new'), style: const TextStyle(fontWeight: FontWeight.w600)),
             Text(v.notas),
           ],
           const SizedBox(height: 10),
-          const Text(
-              'Si hay una sesión de soporte abierta, se cerrará al actualizar.'),
+          Text(pcT('If a support session is open, it will be closed when updating.')),
           if (progreso != null) ...[
             const SizedBox(height: 12),
             LinearProgressIndicator(value: progreso),
@@ -353,7 +353,7 @@ void pcDialogoActualizar(PcVersionPublicada v) {
       ),
       actions: [
         dialogButton('Cancel', onPressed: trabajando ? null : close, isOutline: true),
-        dialogButton('Actualizar', onPressed: trabajando ? null : actualizar),
+        dialogButton('Update', onPressed: trabajando ? null : actualizar),
       ],
       onCancel: trabajando ? null : close,
     );
@@ -377,12 +377,12 @@ class _PcBuscarActualizacionesState extends State<PcBuscarActualizaciones> {
       final v = await PcActualizador.instancia.revisar(manual: true);
       if (!mounted) return;
       if (v == null) {
-        showToast('Ya tiene la versión más reciente ($kPcVersion).');
+        showToast(pcT('You already have the latest version (%s).', kPcVersion));
       } else {
         pcDialogoActualizar(v);
       }
     } catch (e) {
-      showToast('No se pudo buscar actualizaciones: $e');
+      showToast(pcT('Could not check for updates: %s', e));
     } finally {
       if (mounted) setState(() => _buscando = false);
     }
@@ -395,7 +395,7 @@ class _PcBuscarActualizacionesState extends State<PcBuscarActualizaciones> {
       icon: _buscando
           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.system_update_alt, size: 16),
-      label: Text(_buscando ? 'Buscando…' : 'Buscar actualizaciones'),
+      label: Text(_buscando ? pcT('Checking…') : pcT('Check for updates')),
     );
   }
 }

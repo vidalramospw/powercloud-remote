@@ -7,10 +7,13 @@
   "llave_publica": "i9LeDs97ugin9w0V6N16jLx7GuSB0H7oBiL7n98BA0s=",
   "codigo_fuente": "https://github.com/vidalramospw/powercloud-remote",
   "valores_por_defecto": {
-    "verification-method": "use-temporary-password"
+    "verification-method": "use-temporary-password",
+    "direct-server": "N",
+    "enable-lan-discovery": "N"
   },
   "opciones_internas": {
     "hide-powered-by-me": "Y",
-    "allow-https-21114": "Y"
+    "allow-https-21114": "Y",
+    "hide-server-settings": "Y"
   }
 }

@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 import '../common.dart';
+import 'textos.dart';
 import '../models/platform_model.dart';
 
 const kPcDominioPublico = 'pw';
@@ -41,10 +42,14 @@ Map<String, dynamic> _json(http.Response resp) {
 
 /// Devuelve el ID a usar: el mismo texto si no es alias, el ID resuelto si lo es,
 /// o null si no se pudo resolver (ya se mostro el motivo).
+/// Solo IDs de PowerCloud Remote (opcionalmente con /r para forzar el relay).
+/// Se rechaza id@otro_servidor, IP directa y dominio:puerto: todo pasa por nuestro servidor.
+bool pcIdPermitido(String id) => RegExp(r'^[A-Za-z0-9_-]{1,64}(/r)?$').hasMatch(id.trim());
+
 Future<String?> pcResolveAlias(String id) async {
   if (!pcIsAlias(id)) return id;
   if (bind.mainGetLocalOption(key: 'access_token').isEmpty) {
-    showToast('Inicie sesion en PowerCloud Remote para conectarse por alias');
+    showToast(pcT('Sign in to PowerCloud Remote to connect by alias'));
     return null;
   }
   try {
@@ -57,9 +62,9 @@ Future<String?> pcResolveAlias(String id) async {
     if (resp.statusCode == 200 && resuelto is String && resuelto.isNotEmpty) {
       return resuelto;
     }
-    showToast((json['error'] ?? 'No se pudo resolver el alias').toString());
+    showToast((json['error'] ?? pcT('Could not resolve the alias')).toString());
   } catch (e) {
-    showToast('No se pudo resolver el alias: $e');
+    showToast(pcT('Could not resolve the alias: %s', e));
   }
   return null;
 }
@@ -133,7 +138,7 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
                                 fontSize: 14, color: color?.withOpacity(0.5))),
                         const Spacer(),
                         Tooltip(
-                          message: hayAlias ? 'Cambiar alias' : 'Crear alias',
+                          message: hayAlias ? pcT('Change alias') : pcT('Create alias'),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(15),
                             onTap: () => _dialogo(context),
@@ -159,9 +164,9 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
                           : null,
                       onTap: hayAlias ? null : () => _dialogo(context),
                       child: Tooltip(
-                        message: hayAlias ? _alias : 'Cree un alias para que el técnico lo encuentre fácil',
+                        message: hayAlias ? _alias : pcT('Create an alias so the technician can find this device easily'),
                         child: Text(
-                          hayAlias ? _alias : 'Sin alias',
+                          hayAlias ? _alias : pcT('No alias'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -216,17 +221,17 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
             await bind.mainSetLocalOption(key: 'powercloud-alias', value: a);
             if (mounted) this.setState(() => _alias = a);
             close();
-            showToast('Alias registrado: $a');
+            showToast(pcT('Alias registered: %s', a));
             return;
           }
           setState(() {
             enProceso = false;
-            msg = (json['error'] ?? 'No se pudo registrar el alias').toString();
+            msg = (json['error'] ?? pcT('Could not register the alias')).toString();
           });
         } catch (e) {
           setState(() {
             enProceso = false;
-            msg = 'No se pudo conectar con el servidor: $e';
+            msg = pcT('Could not connect to the server: %s', e);
           });
         }
       }
@@ -241,7 +246,7 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
         } catch (e) {
           setState(() {
             enProceso = false;
-            msg = 'No se pudo conectar con el servidor: $e';
+            msg = pcT('Could not connect to the server: %s', e);
           });
         }
       }
@@ -250,14 +255,12 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
           dominio.text.trim().toLowerCase() != kPcDominioPublico &&
               dominio.text.trim().isNotEmpty;
       return CustomAlertDialog(
-        title: const Text('Alias de este equipo'),
+        title: Text(pcT('Alias of this device')),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-                'Con el alias, el tecnico de PowerCloud se conecta escribiendo '
-                'nombre@dominio en lugar del ID. Igual debera aceptar cada conexion.'),
+            Text(pcT('With an alias, the PowerCloud technician connects by typing name@domain instead of the ID. You must still accept each connection.')),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -266,8 +269,8 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
                   child: TextField(
                     controller: nombre,
                     autofocus: true,
-                    decoration: const InputDecoration(
-                        labelText: 'Nombre', hintText: 'caja01'),
+                    decoration: InputDecoration(
+                        labelText: pcT('Name'), hintText: 'caja01'),
                     onChanged: (_) => setState(() => msg = ''),
                   ),
                 ),
@@ -279,7 +282,7 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
                   flex: 2,
                   child: TextField(
                     controller: dominio,
-                    decoration: const InputDecoration(labelText: 'Dominio'),
+                    decoration: InputDecoration(labelText: pcT('Domain')),
                     onChanged: (_) => setState(() => msg = ''),
                   ),
                 ),
@@ -288,8 +291,8 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
             if (esPrivado)
               TextField(
                 controller: codigo,
-                decoration: const InputDecoration(
-                    labelText: 'Codigo de registro del dominio',
+                decoration: InputDecoration(
+                    labelText: pcT('Domain registration code'),
                     hintText: 'XXXX-XXXX-XXXX'),
               ),
             if (msg.isNotEmpty)
@@ -306,7 +309,7 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
         ),
         actions: [
           if (_alias.isNotEmpty)
-            dialogButton('Quitar alias', onPressed: quitar, isOutline: true),
+            dialogButton('Remove alias', onPressed: quitar, isOutline: true),
           dialogButton('Cancel', onPressed: close, isOutline: true),
           dialogButton('OK', onPressed: guardar),
         ],
