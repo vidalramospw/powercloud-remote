@@ -857,7 +857,11 @@ impl Client {
         };
 
         let switch_code = interface.get_switch_code();
-        let legacy_secure = !key.is_empty() && (!token.is_empty() || !switch_code.is_empty());
+        // PowerCloud: el hbbs OSS no hace el intercambio de llaves de Server Pro. Con sesion
+        // iniciada (token) el cliente esperaba ese intercambio y fallaba con "Failed to secure
+        // tcp: deadline has elapsed". hbbs OSS ignora el token: no se espera ni se envia.
+        let token = String::new();
+        let legacy_secure = false && !key.is_empty() && (!token.is_empty() || !switch_code.is_empty());
         let carries_offer = webrtc_offerer.as_ref().and_then(|g| g.stream()).is_some();
         // Counted from before the key exchange, so the exchange spends the UDP NAT test's own
         // wait rather than replacing it: the test runs beside both.
