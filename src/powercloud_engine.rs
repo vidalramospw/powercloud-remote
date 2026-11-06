@@ -257,6 +257,7 @@ fn estado() -> String {
         "relay": relay(),
         "tunel": crate::server::Connection::is_permission_enabled_locally("enable-tunnel"),
         "teclado": crate::server::Connection::is_permission_enabled_locally("enable-keyboard"),
+        "portapapeles": crate::server::Connection::is_permission_enabled_locally("enable-clipboard"),
         "aprobacion": Config::get_option("approve-mode"),
         "sal": sal,
         "temporal": temporal,
