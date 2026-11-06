@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/desktop/widgets/install_directory_confirmation.dart';
 import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
@@ -163,8 +164,16 @@ class _InstallPageBodyState extends State<_InstallPageBody>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(translate('Installation'),
-                  style: Theme.of(context).textTheme.headlineMedium),
+              // PowerCloud: encabezado con logo
+              Row(children: [
+                SvgPicture.asset('assets/icon.svg', width: 40, height: 40),
+                const SizedBox(width: 14),
+                Text(translate('Installation'),
+                    style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).textTheme.titleLarge?.color)),
+              ]).marginOnly(bottom: 8),
               Table(
                 columnWidths: const {
                   0: IntrinsicColumnWidth(),
