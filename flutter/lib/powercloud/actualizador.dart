@@ -66,25 +66,32 @@ class PcActualizador {
     _timer = Timer.periodic(_cadaCuanto, (_) => revisar());
   }
 
-  Future<void> revisar() async {
+  /// Consulta el portal. Devuelve la version nueva o null si ya esta al dia.
+  /// Con [manual] los errores se lanzan (para avisarle a la persona); si no, se ignoran.
+  Future<PcVersionPublicada?> revisar({bool manual = false}) async {
     try {
       final api = await bind.mainGetApiServer();
       final resp = await http.get(Uri.parse('$api/api/descargas/actual'));
-      if (resp.statusCode != 200) return;
+      if (resp.statusCode != 200) throw 'El servidor respondió ${resp.statusCode}';
       final j = jsonDecode(decode_http_response(resp));
-      if (j is! Map<String, dynamic> || j['error'] != null) return;
+      if (j is! Map<String, dynamic> || j['error'] != null) {
+        throw 'No hay versiones publicadas';
+      }
       final v = PcVersionPublicada(j);
       if (v.version.isEmpty || pcCompararVersiones(v.version, kPcVersion) <= 0) {
         disponible.value = null;
-        return;
+        return null;
       }
       disponible.value = v;
-      if (_avisada != v.version) {
+      if (!manual && _avisada != v.version) {
         _avisada = v.version;
         showToast('Hay una nueva versión de PowerCloud Remote: ${v.version}');
       }
+      return v;
     } catch (e) {
       debugPrint('PowerCloud actualizador: $e');
+      if (manual) rethrow;
+      return null;
     }
   }
 
@@ -263,7 +270,7 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
                       width: double.infinity,
                       height: 30,
                       child: ElevatedButton(
-                        onPressed: () => _dialogo(v),
+                        onPressed: () => pcDialogoActualizar(v),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF38B6E8),
                           foregroundColor: Colors.white,
@@ -282,72 +289,113 @@ class _PcVersionBoardState extends State<PcVersionBoard> {
       ),
     );
   }
+}
 
-  void _dialogo(PcVersionPublicada v) {
-    double? progreso;
-    var msg = '';
-    var trabajando = false;
-    gFFI.dialogManager.show((setState, close, context) {
-      Future<void> actualizar() async {
+/// Dialogo para descargar, verificar y aplicar una version.
+void pcDialogoActualizar(PcVersionPublicada v) {
+  double? progreso;
+  var msg = '';
+  var trabajando = false;
+  gFFI.dialogManager.show((setState, close, context) {
+    Future<void> actualizar() async {
+      setState(() {
+        trabajando = true;
+        msg = '';
+        progreso = 0;
+      });
+      try {
+        final ruta = await PcActualizador.instancia
+            .descargar(v, (p) => setState(() => progreso = p));
         setState(() {
-          trabajando = true;
-          msg = '';
-          progreso = 0;
+          progreso = null;
+          msg = 'Verificando…';
         });
-        try {
-          final ruta = await PcActualizador.instancia
-              .descargar(v, (p) => setState(() => progreso = p));
-          setState(() {
-            progreso = null;
-            msg = 'Verificando…';
-          });
-          await PcActualizador.instancia.verificar(v, ruta);
-          setState(() => msg = bind.mainIsInstalled()
-              ? 'Acepte el aviso de Windows para instalar la actualización. Si no lo ve, búsquelo en la barra de tareas.'
-              : 'Reiniciando PowerCloud Remote con la nueva versión…');
-          await PcActualizador.instancia.aplicar(ruta);
-        } catch (e) {
-          setState(() {
-            trabajando = false;
-            progreso = null;
-            msg = e.toString();
-          });
-        }
+        await PcActualizador.instancia.verificar(v, ruta);
+        setState(() => msg = bind.mainIsInstalled()
+            ? 'Acepte el aviso de Windows para instalar la actualización. Si no lo ve, búsquelo en la barra de tareas.'
+            : 'Reiniciando PowerCloud Remote con la nueva versión…');
+        await PcActualizador.instancia.aplicar(ruta);
+      } catch (e) {
+        setState(() {
+          trabajando = false;
+          progreso = null;
+          msg = e.toString();
+        });
       }
+    }
 
-      return CustomAlertDialog(
-        title: Text('Actualizar a la versión ${v.version}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Versión actual: $kPcVersion'),
-            if (v.firmante.isNotEmpty) Text('Firmado por: ${v.firmante}'),
-            if (v.notas.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              const Text('Novedades', style: TextStyle(fontWeight: FontWeight.w600)),
-              Text(v.notas),
-            ],
+    return CustomAlertDialog(
+      title: Text('Actualizar a la versión ${v.version}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Versión actual: $kPcVersion'),
+          if (v.firmante.isNotEmpty) Text('Firmado por: ${v.firmante}'),
+          if (v.notas.isNotEmpty) ...[
             const SizedBox(height: 10),
-            const Text(
-                'Si hay una sesión de soporte abierta, se cerrará al actualizar.'),
-            if (progreso != null) ...[
-              const SizedBox(height: 12),
-              LinearProgressIndicator(value: progreso),
-              Text('${((progreso ?? 0) * 100).round()}%'),
-            ],
-            if (msg.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Text(msg),
-            ],
+            const Text('Novedades', style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(v.notas),
           ],
-        ),
-        actions: [
-          dialogButton('Cancel', onPressed: trabajando ? null : close, isOutline: true),
-          dialogButton('Actualizar', onPressed: trabajando ? null : actualizar),
+          const SizedBox(height: 10),
+          const Text(
+              'Si hay una sesión de soporte abierta, se cerrará al actualizar.'),
+          if (progreso != null) ...[
+            const SizedBox(height: 12),
+            LinearProgressIndicator(value: progreso),
+            Text('${((progreso ?? 0) * 100).round()}%'),
+          ],
+          if (msg.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(msg),
+          ],
         ],
-        onCancel: trabajando ? null : close,
-      );
-    });
+      ),
+      actions: [
+        dialogButton('Cancel', onPressed: trabajando ? null : close, isOutline: true),
+        dialogButton('Actualizar', onPressed: trabajando ? null : actualizar),
+      ],
+      onCancel: trabajando ? null : close,
+    );
+  });
+}
+
+/// Boton "Buscar actualizaciones" (pantalla Acerca de).
+class PcBuscarActualizaciones extends StatefulWidget {
+  const PcBuscarActualizaciones({Key? key}) : super(key: key);
+
+  @override
+  State<PcBuscarActualizaciones> createState() => _PcBuscarActualizacionesState();
+}
+
+class _PcBuscarActualizacionesState extends State<PcBuscarActualizaciones> {
+  var _buscando = false;
+
+  Future<void> _buscar() async {
+    setState(() => _buscando = true);
+    try {
+      final v = await PcActualizador.instancia.revisar(manual: true);
+      if (!mounted) return;
+      if (v == null) {
+        showToast('Ya tiene la versión más reciente ($kPcVersion).');
+      } else {
+        pcDialogoActualizar(v);
+      }
+    } catch (e) {
+      showToast('No se pudo buscar actualizaciones: $e');
+    } finally {
+      if (mounted) setState(() => _buscando = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: _buscando ? null : _buscar,
+      icon: _buscando
+          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.system_update_alt, size: 16),
+      label: Text(_buscando ? 'Buscando…' : 'Buscar actualizaciones'),
+    );
   }
 }
