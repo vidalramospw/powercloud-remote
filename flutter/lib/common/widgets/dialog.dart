@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../../powercloud/ui/carpetas_directorio.dart';
+import '../../models/ab_model.dart';
 import 'dart:convert';
 
 import 'package:bot_toast/bot_toast.dart';
@@ -2485,9 +2487,11 @@ void showWindowsSessionsDialog(
 void addPeersToAbDialog(
   List<Peer> peers,
 ) async {
+  List<String>? carpeta;
   Future<bool> addTo(String abname) async {
     final mapList = peers.map((e) {
       var json = e.toJson();
+      if (carpeta != null) json['tags'] = carpeta;
       // remove password when add to another address book to avoid re-share
       json.remove('password');
       json.remove('hash');
@@ -2506,6 +2510,10 @@ void addPeersToAbDialog(
   // if only one address book and it is personal, add to it directly
   if (gFFI.abModel.addressbooks.length == 1 &&
       gFFI.abModel.current.isPersonal()) {
+    // PowerCloud: elegir la carpeta del directorio (por omision, General).
+    final elegida = await pcElegirCarpeta();
+    if (elegida == null) return;
+    carpeta = elegida == kUntagged ? [] : [elegida];
     await addTo(gFFI.abModel.currentName.value);
     return;
   }

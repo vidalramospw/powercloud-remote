@@ -19,6 +19,7 @@ import 'package:get/get.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 
 import '../../common.dart';
+import '../../powercloud/ui/carpetas_directorio.dart';
 import 'dialog.dart';
 import 'login.dart';
 
@@ -83,22 +84,15 @@ class _AddressBookState extends State<AddressBook> {
                   border: Border.all(
                       color: Theme.of(context).colorScheme.background)),
               child: Container(
-                width: 200,
+                width: 240,
                 height: double.infinity,
                 child: Column(
                   children: [
                     _buildAbDropdown(),
-                    _buildTagHeader().marginOnly(
-                        left: 8.0,
-                        right: gFFI.abModel.legacyMode.value ? 8.0 : 0,
-                        top: gFFI.abModel.legacyMode.value ? 8.0 : 0),
+                    // PowerCloud: carpetas (ramas) en lugar de etiquetas.
                     Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        child: _buildTags(),
-                      ),
-                    ),
+                        child: const PcCarpetasDirectorio().marginOnly(
+                            top: gFFI.abModel.legacyMode.value ? 6.0 : 0)),
                     _buildAbPermission(),
                   ],
                 ),
@@ -127,11 +121,7 @@ class _AddressBookState extends State<AddressBook> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildAbDropdown(),
-                    _buildTagHeader().marginOnly(left: 8.0, right: 0),
-                    Container(
-                      width: double.infinity,
-                      child: _buildTags(),
-                    ),
+                    const SizedBox(height: 220, child: PcCarpetasDirectorio()),
                   ],
                 ),
               ),

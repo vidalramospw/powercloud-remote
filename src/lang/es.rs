@@ -917,5 +917,11 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("The Windows user on this device is not an administrator. Use an administrator username and password.", "El usuario de Windows de este equipo no es administrador. Use un usuario y contraseña de administrador."),
         ("Install PowerCloud Remote on the device to open an administrator terminal.", "Instale PowerCloud Remote en el equipo para abrir una terminal de administrador."),
         ("Remote desktop (PowerCloud Engine, test)", "Escritorio remoto (PowerCloud Engine, prueba)"),
+        ("Folders", "Carpetas"),
+        ("New folder", "Nueva carpeta"),
+        ("New subfolder", "Nueva subcarpeta"),
+        ("All devices", "Todos los equipos"),
+        ("Folder", "Carpeta"),
+        ("Delete the folder %s? Its devices go to General.", "¿Eliminar la carpeta %s? Sus equipos pasan a General."),
     ].iter().cloned().collect();
 }

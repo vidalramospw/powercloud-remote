@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../powercloud/ui/carpetas_directorio.dart';
 import 'dart:collection';
 
 import 'package:dynamic_layouts/dynamic_layouts.dart';
@@ -517,12 +518,15 @@ class AddressBookPeersView extends BasePeersView {
       : super(
           key: key,
           peerTabIndex: PeerTabIndex.ab,
+          // PowerCloud: carpetas (la elegida incluye sus subcarpetas) y tarjetas arrastrables.
           peerFilter: (Peer peer) =>
-              _hitTag(gFFI.abModel.selectedTags, peer.tags),
-          peerCardBuilder: (Peer peer) => AddressBookPeerCard(
-            peer: peer,
-            menuPadding: menuPadding,
-          ),
+              pcCoincideCarpeta(gFFI.abModel.selectedTags, peer.tags),
+          peerCardBuilder: (Peer peer) => pcTarjetaArrastrable(
+              peer,
+              AddressBookPeerCard(
+                peer: peer,
+                menuPadding: menuPadding,
+              )),
         );
 
   static bool _hitTag(List<dynamic> selectedTags, List<dynamic> idents) {
