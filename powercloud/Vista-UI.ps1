@@ -87,6 +87,9 @@ try {
     if ($ActualizarRust -or -not (Test-Path $dll) -or -not (Test-Path "flutter\lib\generated_bridge.dart")) {
         Paso "Rust (librustdesk.dll + bridge) de la ultima compilacion exitosa"
         $run = & gh run list -R $repoGh --workflow powercloud-windows.yml --status success --limit 1 --json databaseId --jq ".[0].databaseId"
+        foreach ($b in "src\bridge_generated.rs", "src\bridge_generated.io.rs", "flutter\lib\generated_bridge.dart", "flutter\lib\generated_bridge.freezed.dart", "flutter\macos\Runner\bridge_generated.h", "flutter\ios\Runner\bridge_generated.h") {
+            if (Test-Path $b) { Remove-Item $b -Force }
+        }
         Ejecutar gh @("run", "download", $run, "-R", $repoGh, "-n", "bridge-artifact", "-D", ".")
         $tmp = Join-Path $Base "descargas\carpeta"
         if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
