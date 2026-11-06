@@ -97,8 +97,12 @@ void pcAbrirTunel(String id) {
             '--tecnico', tecnico,
             '--relay', await _relay(),
           ],
-          // La contrasena va por variable de entorno: no queda en la linea de comandos.
-          environment: {'PCE_CLAVE': clave.text},
+          // La contrasena y el token de sesion van por variables de entorno: no quedan en la linea de
+          // comandos. El servidor exige la sesion del tecnico y su acceso al equipo.
+          environment: {
+            'PCE_CLAVE': clave.text,
+            'PCE_TOKEN': bind.mainGetLocalOption(key: 'access_token'),
+          },
         );
       } catch (e) {
         setState(() {
