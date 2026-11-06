@@ -2599,7 +2599,7 @@ connect(BuildContext context, String id,
   if (pcId == null) return;
   id = pcId;
   if (!pcIdPermitido(id)) {
-    showToast(pcT('Only PowerCloud Remote IDs or aliases can be used'));
+    showToast(pcT('Only PowerCloud Remote IDs, aliases or private network IPs can be used'));
     return;
   }
   final oldId = id;

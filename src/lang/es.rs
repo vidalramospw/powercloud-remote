@@ -868,6 +868,6 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("About PowerCloud Remote", "Acerca de PowerCloud Remote"),
         ("Downloads", "Descargas"),
         ("Remote support with your permission.", "Soporte remoto con su autorización."),
-        ("Only PowerCloud Remote IDs or aliases can be used", "Solo se pueden usar IDs o alias de PowerCloud Remote"),
+        ("Only PowerCloud Remote IDs, aliases or private network IPs can be used", "Solo se pueden usar IDs o alias de PowerCloud Remote, o IP de su red local, intranet o VPN"),
     ].iter().cloned().collect();
 }

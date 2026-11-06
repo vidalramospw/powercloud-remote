@@ -1460,7 +1460,7 @@ class _SafetyState extends State<_Safety> with AutomaticKeepAliveClientMixin {
       shareRdp(context, enabled),
       _OptionCheckBox(context, 'Deny LAN discovery', 'enable-lan-discovery',
           reverse: true, enabled: enabled),
-      // PowerCloud: sin acceso directo por IP: la conexion pasa por el servidor.
+      ...directIp(context),
       whitelist(),
       idWhitelist(),
       ...autoDisconnect(context),

@@ -9,6 +9,7 @@
 // registro que PowerCloud entrega al cliente con su plan.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,9 +43,37 @@ Map<String, dynamic> _json(http.Response resp) {
 
 /// Devuelve el ID a usar: el mismo texto si no es alias, el ID resuelto si lo es,
 /// o null si no se pudo resolver (ya se mostro el motivo).
-/// Solo IDs de PowerCloud Remote (opcionalmente con /r para forzar el relay).
-/// Se rechaza id@otro_servidor, IP directa y dominio:puerto: todo pasa por nuestro servidor.
-bool pcIdPermitido(String id) => RegExp(r'^[A-Za-z0-9_-]{1,64}(/r)?$').hasMatch(id.trim());
+/// IDs de PowerCloud Remote (opcionalmente con /r para forzar el relay) o una IP privada
+/// (red local, intranet o VPN) con puerto opcional. Se rechazan IP publicas, dominios e
+/// id@otro_servidor: fuera de la red propia todo pasa por el servidor de PowerCloud.
+bool pcIdPermitido(String id) {
+  final t = id.trim();
+  if (RegExp(r'^[A-Za-z0-9_-]{1,64}(/r)?$').hasMatch(t)) return true;
+  return pcEsIpPrivada(t);
+}
+
+bool pcEsIpPrivada(String texto) {
+  var t = texto.trim();
+  // IPv6 entre corchetes con puerto: [fd00::1]:21118
+  final v6 = RegExp(r'^\[([0-9A-Fa-f:]+)\](:\d{1,5})?$').firstMatch(t);
+  if (v6 != null) t = v6.group(1)!;
+  final v4 = RegExp(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(:\d{1,5})?$').firstMatch(t);
+  if (v4 != null) {
+    final o = [1, 2, 3, 4].map((i) => int.parse(v4.group(i)!)).toList();
+    if (o.any((x) => x > 255)) return false;
+    return o[0] == 10 ||
+        (o[0] == 172 && o[1] >= 16 && o[1] <= 31) ||
+        (o[0] == 192 && o[1] == 168) ||
+        (o[0] == 100 && o[1] >= 64 && o[1] <= 127) || // CGNAT: VPN tipo Tailscale
+        (o[0] == 169 && o[1] == 254);
+  }
+  final ip = InternetAddress.tryParse(t);
+  if (ip != null && ip.type == InternetAddressType.IPv6) {
+    final b0 = ip.rawAddress[0], b1 = ip.rawAddress[1];
+    return (b0 & 0xFE) == 0xFC || (b0 == 0xFE && (b1 & 0xC0) == 0x80); // fc00::/7, fe80::/10
+  }
+  return false;
+}
 
 Future<String?> pcResolveAlias(String id) async {
   if (!pcIsAlias(id)) return id;
