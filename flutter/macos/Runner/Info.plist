@@ -26,10 +26,10 @@
 			<key>CFBundleURLIconFile</key>
 			<string></string>
 			<key>CFBundleURLName</key>
-			<string>com.carriez.rustdesk</string>
+			<string>sv.com.powercloud.remote</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>rustdesk</string>
+				<string>powercloudremote</string>
 			</array>
 		</dict>
 	</array>
