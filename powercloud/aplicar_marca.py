@@ -97,7 +97,7 @@ def main() -> int:
     reemplazar(
         "src/common.rs",
         '    "https://admin.rustdesk.com".to_owned()',
-        f'    "https://{MARCA["servidor"]}:21114".to_owned() // PowerCloud',
+        f'    "https://{MARCA["servidor"]}".to_owned() // PowerCloud',
     )
     reemplazar(
         "src/common.rs",

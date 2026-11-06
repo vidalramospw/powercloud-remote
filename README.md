@@ -54,7 +54,7 @@ El programa se conecta al servidor `monitoreo.powercloud.com.sv` para registrar 
 establecer las sesiones que el usuario acepta. Las sesiones van cifradas de extremo a extremo.
 PowerCloud Remote no agrega telemetría propia y no se comunica con servidores de RustDesk:
 la consulta de actualizaciones está desactivada y el servidor API (inicio de sesión de
-técnicos, libreta, inventario, auditoría y alias) es `https://monitoreo.powercloud.com.sv:21114`.
+técnicos, libreta, inventario, auditoría y alias) es `https://monitoreo.powercloud.com.sv`.
 
 ---
 
@@ -75,6 +75,6 @@ any time.
   to Vidal Enrique Ramos Argueta. Only binaries built from this public repository are signed.
 - **Privacy:** the client registers and connects through `monitoreo.powercloud.com.sv`; sessions
   are end-to-end encrypted; no telemetry is added and no RustDesk servers are contacted (update
-  check disabled; API server `https://monitoreo.powercloud.com.sv:21114`).
+  check disabled; API server `https://monitoreo.powercloud.com.sv`).
 
 The original RustDesk README is kept in [docs/README-RustDesk.md](docs/README-RustDesk.md).
