@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import '../../common.dart';
 import '../../powercloud/alias.dart';
+import '../../powercloud/tunel.dart';
 import '../../common/formatter/id_formatter.dart';
 import '../../models/peer_model.dart';
 import '../../models/platform_model.dart';
@@ -1020,6 +1021,16 @@ class RecentPeerCard extends BasePeerCard {
 
     if (isDesktop && peer.platform != kPeerPlatformAndroid) {
       menuItems.add(_tcpTunnelingAction(context));
+    }
+    if (isDesktop && peer.platform == kPeerPlatformWindows && pcRutaVisor() != null) {
+      menuItems.add(MenuEntryButton<String>(
+        childBuilder: (TextStyle? style) => Text(
+            translate('Remote desktop (PowerCloud Engine, test)'),
+            style: style),
+        proc: () => pcAbrirEscritorioPropio(peer.id),
+        padding: menuPadding,
+        dismissOnClicked: true,
+      ));
     }
     // menuItems.add(await _openNewConnInOptAction(peer.id));
     if (!isWeb) {

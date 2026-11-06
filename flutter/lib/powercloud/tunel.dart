@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../common.dart';
 import '../common/formatter/id_formatter.dart';
 import '../models/platform_model.dart';
+import 'alias.dart';
 import 'textos.dart';
 
 /// Tunel TCP de PowerCloud Engine desde la PC del tecnico.
@@ -22,6 +23,36 @@ String? pcRutaConector() {
   final ruta =
       '${File(Platform.resolvedExecutable).parent.path}${Platform.pathSeparator}$exe';
   return File(ruta).existsSync() ? ruta : null;
+}
+
+String? pcRutaVisor() {
+  if (!Platform.isWindows) return null;
+  final ruta =
+      '${File(Platform.resolvedExecutable).parent.path}${Platform.pathSeparator}pce-visor.exe';
+  return File(ruta).existsSync() ? ruta : null;
+}
+
+/// Escritorio remoto propio de PowerCloud Engine (etapa de prueba: solo ver). Abre el visor en su
+/// propia ventana; la persona frente al equipo acepta en pantalla.
+Future<void> pcAbrirEscritorioPropio(String idOAlias) async {
+  final visor = pcRutaVisor();
+  if (visor == null) return;
+  if (!await pcExigirSesion()) return;
+  final id = await pcResolveAlias(idOAlias.replaceAll(' ', ''));
+  if (id == null) return;
+  final tecnico = gFFI.userModel.userName.value.isNotEmpty
+      ? gFFI.userModel.userName.value
+      : Platform.localHostname;
+  try {
+    await Process.start(
+      visor,
+      ['--id', id, '--tecnico', tecnico, '--relay', await _relay()],
+      environment: {'PCE_TOKEN': bind.mainGetLocalOption(key: 'access_token')},
+      mode: ProcessStartMode.detached,
+    );
+  } catch (e) {
+    showToast('$e');
+  }
 }
 
 Future<String> _relay() async {

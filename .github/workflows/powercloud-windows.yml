@@ -109,7 +109,7 @@ jobs:
           python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec --vram
           mv ./flutter/build/windows/x64/runner/Release ./powercloud-remote
           # Agente del tunel de PowerCloud Engine (programa aparte, codigo cerrado).
-          Copy-Item ./powercloud/engine/windows-x64/pce-agente.exe, ./powercloud/engine/windows-x64/pce-conector.exe ./powercloud-remote/
+          Copy-Item ./powercloud/engine/windows-x64/pce-agente.exe, ./powercloud/engine/windows-x64/pce-conector.exe, ./powercloud/engine/windows-x64/pce-visor.exe ./powercloud-remote/
           Get-ChildItem ./powercloud-remote -Filter *.exe
 
       - name: Copy Runner.res for the portable packer

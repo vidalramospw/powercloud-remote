@@ -131,6 +131,12 @@ def main() -> int:
     reemplazar("src/tray.rs", "                crate::get_app_name(),",
                f'                "{visible}",', todas=True)
 
+    # 4a2. Escala adaptativa por omision en las sesiones remotas de escritorio (se ajusta a la
+    #      ventana). Lo que cada tecnico ya haya elegido se respeta.
+    reemplazar("libs/hbb_common/src/config.rs",
+               'keys::OPTION_VIEW_STYLE => self.get_string(key, "original", vec!["adaptive"]),',
+               'keys::OPTION_VIEW_STYLE => self.get_string(key, "adaptive", vec!["original"]),')
+
     # 4b. Propiedades del portable autoextraible (libs/portable)
     portable = "libs/portable/Cargo.toml"
     reemplazar(portable, 'LegalCopyright = "Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved."',
