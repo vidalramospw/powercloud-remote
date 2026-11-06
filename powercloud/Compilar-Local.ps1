@@ -128,6 +128,8 @@ try {
     $carpeta = Join-Path $salida "PowerCloudRemote-$version"
     if (Test-Path $carpeta) { Remove-Item $carpeta -Recurse -Force }
     Copy-Item $release $carpeta -Recurse
+    # Agente del tunel de PowerCloud Engine (programa aparte), igual que en el CI.
+    Copy-Item "powercloud\engine\windows-x64\pce-agente.exe" $carpeta -Force
     $res = Get-ChildItem -Recurse -Filter Runner.res -Path "flutter\build" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($res) { Copy-Item $res.FullName "libs\portable\Runner.res" -Force }
     (Get-Content "res\manifest.xml") | Where-Object { $_ -notmatch "dpiAware" } | Set-Content "res\manifest.xml" -Encoding UTF8
