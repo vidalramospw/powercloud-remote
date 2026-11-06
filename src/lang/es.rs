@@ -923,5 +923,8 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("All devices", "Todos los equipos"),
         ("Folder", "Carpeta"),
         ("Delete the folder %s? Its devices go to General.", "¿Eliminar la carpeta %s? Sus equipos pasan a General."),
+        ("Uninstall PowerCloud Remote from this device? Remote support will no longer be possible until it is installed again.", "¿Desinstalar PowerCloud Remote de este equipo? No se podrá dar soporte remoto hasta volver a instalarlo."),
+        ("PowerCloud Remote was uninstalled.", "PowerCloud Remote se desinstaló correctamente."),
+        ("PowerCloud Remote could not be uninstalled.", "No se pudo desinstalar PowerCloud Remote."),
     ].iter().cloned().collect();
 }

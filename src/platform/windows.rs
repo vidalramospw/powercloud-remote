@@ -1925,6 +1925,29 @@ pub fn uninstall_me(kill_self: bool) -> ResultType<()> {
     run_cmds(get_uninstall(kill_self, true)?, true, "uninstall")
 }
 
+/// Igual que `uninstall_me(true)`, pero sin la consola visible y con un aviso al terminar. El
+/// aviso lo muestra el propio script, porque este proceso se cierra al empezar la desinstalacion.
+pub fn uninstall_me_con_aviso(aviso: &str) -> ResultType<()> {
+    use hbb_common::base64::{engine::general_purpose::STANDARD, Engine};
+    if is_self_service_running() {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()?
+            .block_on(crate::trusted_devices::config::refresh_from_server())?;
+    }
+    let texto = aviso.replace('\'', "''");
+    let ps = format!(
+        "Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show('{texto}', 'PowerCloud Remote', 'OK', 'Information') | Out-Null"
+    );
+    let utf16: Vec<u8> = ps.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+    let cmds = format!(
+        "{}\nstart \"\" powershell.exe -NoProfile -WindowStyle Hidden -EncodedCommand {}\n",
+        get_uninstall(true, true)?,
+        STANDARD.encode(utf16)
+    );
+    run_cmds(cmds, false, "uninstall")
+}
+
 fn write_vbs(cmds: String, tip: &str) -> ResultType<PathBuf> {
     const UTF16LE_BOM: &[u8] = &[0xFF, 0xFE];
     let mut tmp = std::env::temp_dir();

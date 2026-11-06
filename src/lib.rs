@@ -66,6 +66,9 @@ mod updater;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod powercloud_engine;
 
+#[cfg(windows)]
+mod powercloud_desinstalar;
+
 mod ui_cm_interface;
 mod ui_interface;
 mod ui_session_interface;
