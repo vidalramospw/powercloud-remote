@@ -8,8 +8,7 @@
   "codigo_fuente": "https://github.com/vidalramospw/powercloud-remote",
   "valores_por_defecto": {
     "verification-method": "use-temporary-password",
-    "direct-server": "N",
-    "enable-lan-discovery": "N"
+    "direct-server": "N"
   },
   "opciones_internas": {
     "hide-powered-by-me": "Y",
