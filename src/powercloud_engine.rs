@@ -137,6 +137,12 @@ fn evento(rt: &Handle, entrada: &Entrada, v: &serde_json::Value) {
                 mostrar(rt, entrada, n, texto("tecnico"), texto("ip"), texto("destino"), true);
             }
         }
+        // Chat del tecnico (escritorio remoto propio): a la ventana de conexiones.
+        Some("chat") => {
+            if let Some(tx) = TUNELES.lock().unwrap().get(&n) {
+                let _ = tx.send(Data::ChatMessage { text: texto("texto") });
+            }
+        }
         Some("cerrado") => {
             if let Some(tx) = TUNELES.lock().unwrap().remove(&n) {
                 let _ = tx.send(Data::Close);
@@ -185,6 +191,10 @@ fn mostrar(rt: &Handle, entrada: &Entrada, n: u64, tecnico: String, ip: String, 
                 Data::Authorize if !respondido => {
                     respondido = true;
                     enviar(&entrada, &serde_json::json!({"t": "respuesta", "n": n, "ok": true}).to_string());
+                }
+                // Lo que responde el cliente en el chat de la ventana de conexiones.
+                Data::ChatMessage { text } => {
+                    enviar(&entrada, &serde_json::json!({"t": "chat", "n": n, "texto": text}).to_string());
                 }
                 Data::Close => {
                     let orden = if respondido {
