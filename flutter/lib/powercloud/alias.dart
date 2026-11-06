@@ -148,12 +148,12 @@ class _PcAliasBoardState extends State<PcAliasBoard> {
     final color = Theme.of(context).textTheme.titleLarge?.color;
     final hayAlias = _alias.isNotEmpty;
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 11, top: 6),
+      margin: const EdgeInsets.only(left: 6, right: 2, top: 8, bottom: 8),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(width: 2, color: MyTheme.accent),
+            const SizedBox(width: 0),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(left: 7),

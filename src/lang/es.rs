@@ -869,5 +869,9 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Downloads", "Descargas"),
         ("Remote support with your permission.", "Soporte remoto con su autorización."),
         ("Only PowerCloud Remote IDs, aliases or private network IPs can be used", "Solo se pueden usar IDs o alias de PowerCloud Remote, o IP de su red local, intranet o VPN"),
+        ("Connect to a device", "Conectar a un equipo"),
+        ("Type the ID or alias of the device you want to support", "Escriba el ID o el alias del equipo que va a atender"),
+        ("This device", "Este equipo"),
+        ("Share this ID and password with your technician", "Comparta este ID y contraseña con su técnico"),
     ].iter().cloned().collect();
 }

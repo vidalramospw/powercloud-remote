@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -16 128 128">
+  <!-- PowerCloud: marca solida (se usa a 16-30 px dentro de la app) -->
+  <path fill="#38b6e8" fill-rule="evenodd"
+        d="M36 86 C20 86 8 74 8 59 C8 46 17 36 29 34 C33 20 46 10 61 10
+           C79 10 94 23 96 41 C110 43 120 55 120 68 C120 78 112 86 102 86 Z
+           M50 38 h28 a6 6 0 0 1 6 6 v20 a6 6 0 0 1 -6 6 h-28 a6 6 0 0 1 -6 -6 v-20 a6 6 0 0 1 6 -6 Z"/>
+</svg>

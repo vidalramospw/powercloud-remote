@@ -26,6 +26,8 @@ import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
 import 'package:flutter_hbb/powercloud/alias.dart';
 import 'package:flutter_hbb/powercloud/actualizador.dart';
+import 'package:flutter_hbb/powercloud/textos.dart';
+import 'package:flutter_hbb/powercloud/ui/barra_lateral.dart';
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
@@ -64,11 +66,16 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return _buildBlock(
         child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildLeftPane(context),
-        if (!isIncomingOnly) const VerticalDivider(width: 1),
-        if (!isIncomingOnly) Expanded(child: buildRightPane(context)),
-      ],
+      children: isIncomingOnly
+          ? [buildLeftPane(context)]
+          : [
+              // PowerCloud: barra lateral | conectar | este equipo
+              const PcBarraLateral(),
+              const VerticalDivider(width: 1),
+              Expanded(child: buildRightPane(context)),
+              const VerticalDivider(width: 1),
+              buildLeftPane(context),
+            ],
     ));
   }
 
@@ -87,15 +94,21 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           alignment: Alignment.center,
           child: loadPowered(context),
         ),
-      Align(
-        alignment: Alignment.center,
-        child: loadLogo(),
-      ),
-      buildTip(context),
-      if (!isOutgoingOnly) buildIDBoard(context),
-      if (!isOutgoingOnly) const PcAliasBoard(),
+      if (isIncomingOnly)
+        Align(
+          alignment: Alignment.center,
+          child: loadLogo(),
+        ),
+      if (isIncomingOnly) buildTip(context) else _pcEncabezado(context),
+      if (!isOutgoingOnly)
+        _pcTarjeta(context, [
+          buildIDBoard(context),
+          _pcSeparador(context),
+          const PcAliasBoard(),
+          _pcSeparador(context),
+          buildPasswordBoard(context),
+        ]),
       if (!isOutgoingOnly) const PcVersionBoard(),
-      if (!isOutgoingOnly) buildPasswordBoard(context),
       FutureBuilder<Widget>(
         future: Future.value(
             Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
@@ -133,7 +146,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return ChangeNotifierProvider.value(
       value: gFFI.serverModel,
       child: Container(
-        width: isIncomingOnly ? 280.0 : 200.0,
+        width: isIncomingOnly ? 280.0 : 250.0,
         color: Theme.of(context).colorScheme.background,
         child: Stack(
           children: [
@@ -182,6 +195,46 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     );
   }
 
+  // PowerCloud: tarjeta del panel "Este equipo".
+  Widget _pcTarjeta(BuildContext context, List<Widget> hijos) {
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: oscuro ? const Color(0xFF16202B) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: MyTheme.color(context).border!),
+      ),
+      child: Column(children: hijos),
+    );
+  }
+
+  Widget _pcSeparador(BuildContext context) =>
+      Divider(height: 1, thickness: 1, color: MyTheme.color(context).border!.withOpacity(0.6))
+          .marginSymmetric(horizontal: 6);
+
+  // PowerCloud: encabezado del panel "Este equipo".
+  Widget _pcEncabezado(BuildContext context) {
+    final color = Theme.of(context).textTheme.titleLarge?.color;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 26, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(pcT('This device'),
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: color)),
+          const SizedBox(height: 4),
+          Text(pcT('Share this ID and password with your technician'),
+              style: TextStyle(fontSize: 12.5, color: color?.withOpacity(0.6))),
+        ],
+      ),
+    );
+  }
+
   buildRightPane(BuildContext context) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
@@ -192,16 +245,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   buildIDBoard(BuildContext context) {
     final model = gFFI.serverModel;
     return Container(
-      margin: const EdgeInsets.only(left: 20, right: 11),
-      height: 57,
+      margin: const EdgeInsets.only(left: 6, right: 4, top: 4),
+      height: 60,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          Container(
-            width: 2,
-            decoration: const BoxDecoration(color: MyTheme.accent),
-          ).marginOnly(top: 5),
+          const SizedBox(width: 0),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 7),
@@ -240,10 +290,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                         readOnly: true,
                         decoration: InputDecoration(
                           border: InputBorder.none,
+                          filled: false,
                           contentPadding: EdgeInsets.only(top: 10, bottom: 10),
                         ),
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
                         ),
                       ).workaroundFreezeLinuxMint(),
                     ),
@@ -299,16 +352,12 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     final showOneTime = model.approveMode != 'click' &&
         model.verificationMethod != kUsePermanentPassword;
     return Container(
-      margin: EdgeInsets.only(left: 20.0, right: 16, top: 13, bottom: 13),
+      margin: EdgeInsets.only(left: 6.0, right: 2, top: 6, bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          Container(
-            width: 2,
-            height: 52,
-            decoration: BoxDecoration(color: MyTheme.accent),
-          ),
+          const SizedBox(width: 0, height: 52),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 7),
@@ -337,10 +386,14 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                             readOnly: true,
                             decoration: InputDecoration(
                               border: InputBorder.none,
+                              filled: false,
                               contentPadding:
                                   EdgeInsets.only(top: 14, bottom: 10),
                             ),
-                            style: TextStyle(fontSize: 15),
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1),
                           ).workaroundFreezeLinuxMint(),
                         ),
                       ),
@@ -605,22 +658,24 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       }
     }
 
+    // PowerCloud: tarjeta con los colores de la marca.
+    final pcOscuro = Theme.of(context).brightness == Brightness.dark;
+    final pcTexto = Theme.of(context).textTheme.titleLarge?.color;
     return Stack(
       children: [
         Container(
           margin: EdgeInsets.fromLTRB(
-              0, marginTop, 0, bind.isIncomingOnly() ? marginTop : 0),
+              14, marginTop, 14, bind.isIncomingOnly() ? marginTop : 0),
           child: Container(
               decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  Color.fromARGB(255, 226, 66, 188),
-                  Color.fromARGB(255, 244, 114, 124),
-                ],
-              )),
-              padding: EdgeInsets.all(20),
+                color: pcOscuro
+                    ? const Color(0xFF132A3A)
+                    : const Color(0xFFEAF6FC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: const Color(0xFF38B6E8).withOpacity(0.45)),
+              ),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,9 +685,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                                   child: Text(
                                 translate(title),
                                 style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15),
+                                    color: pcTexto,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14),
                               ).marginOnly(bottom: 6)),
                             ]
                           : <Widget>[]) +
@@ -641,29 +696,31 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                           Text(
                             translate(content),
                             style: TextStyle(
-                                height: 1.5,
-                                color: Colors.white,
+                                height: 1.45,
+                                color: pcTexto?.withOpacity(0.8),
                                 fontWeight: FontWeight.normal,
-                                fontSize: 13),
-                          ).marginOnly(bottom: 20)
+                                fontSize: 12.5),
+                          ).marginOnly(bottom: 14)
                       ] +
                       (btnText.isNotEmpty
                           ? <Widget>[
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    FixedWidthButton(
-                                      width: 150,
-                                      padding: 8,
-                                      isOutline: true,
-                                      text: translate(btnText),
-                                      textColor: Colors.white,
-                                      borderColor: Colors.white,
-                                      textSize: 20,
-                                      radius: 10,
-                                      onTap: onPressed,
-                                    )
-                                  ])
+                              SizedBox(
+                                width: double.infinity,
+                                height: 38,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                  ),
+                                  onPressed: onPressed,
+                                  child: Text(translate(btnText),
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              )
                             ]
                           : <Widget>[]) +
                       (help != null
@@ -677,7 +734,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
                                         style: TextStyle(
                                             decoration:
                                                 TextDecoration.underline,
-                                            color: Colors.white,
+                                            color: pcTexto?.withOpacity(0.7),
                                             fontSize: 12),
                                       )).marginOnly(top: 6)),
                             ]
@@ -690,7 +747,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
             child: IconButton(
               icon: Icon(
                 Icons.close,
-                color: Colors.white,
+                color: Theme.of(context).textTheme.titleLarge?.color?.withOpacity(0.5),
                 size: 20,
               ),
               onPressed: closeCard,

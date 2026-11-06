@@ -313,12 +313,10 @@ class _ConnectionPageState extends State<ConnectionPage>
               children: [
                 Flexible(child: _buildRemoteIDTextField(context)),
               ],
-            ).marginOnly(top: 22),
-            SizedBox(height: 12),
-            Divider().paddingOnly(right: 12),
-            Expanded(child: PeerTabPage()),
+            ),
+            Expanded(child: PeerTabPage().paddingOnly(left: 28, right: 16)),
           ],
-        ).paddingOnly(left: 12.0)),
+        )),
         if (!isOutgoingOnly) const Divider(height: 1),
         if (!isOutgoingOnly) OnlineStatusWidget()
       ],
@@ -344,15 +342,12 @@ class _ConnectionPageState extends State<ConnectionPage>
   /// Search for a peer.
   Widget _buildRemoteIDTextField(BuildContext context) {
     var w = Container(
-      width: 320 + 20 * 2,
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
-      decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(13)),
-          border: Border.all(color: Theme.of(context).colorScheme.background)),
+      padding: const EdgeInsets.fromLTRB(28, 26, 28, 18),
       child: Ink(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            getConnectionPageTitle(context, false).marginOnly(bottom: 15),
+            getConnectionPageTitle(context, false).marginOnly(bottom: 18),
             Row(
               children: [
                 Expanded(
@@ -420,15 +415,24 @@ class _ConnectionPageState extends State<ConnectionPage>
                           keyboardType: TextInputType.visiblePassword,
                           focusNode: fieldFocusNode,
                           style: const TextStyle(
-                            fontFamily: 'WorkSans',
-                            fontSize: 22,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
                             height: 1.4,
                           ),
                           maxLines: 1,
                           cursorColor:
                               Theme.of(context).textTheme.titleLarge?.color,
                           decoration: InputDecoration(
-                              filled: false,
+                              filled: true,
+                              prefixIcon: const Icon(Icons.computer_outlined, size: 20),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                      color: MyTheme.color(context).border!)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: MyTheme.accent, width: 1.5)),
                               counterText: '',
                               hintText: _idInputFocused.value
                                   ? null
@@ -513,27 +517,32 @@ class _ConnectionPageState extends State<ConnectionPage>
                     );
                   },
                 )),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 13.0),
-              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                const SizedBox(width: 10),
                 SizedBox(
-                  height: 28.0,
-                  child: ElevatedButton(
+                  height: 50.0,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 22),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
                     onPressed: () {
                       onConnect();
                     },
-                    child: Text(translate("Connect")),
+                    icon: const Icon(Icons.arrow_forward_rounded, size: 20),
+                    label: Text(translate("Connect"),
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  height: 28.0,
-                  width: 28.0,
+                  height: 50.0,
+                  width: 50.0,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: MyTheme.color(context).border!),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
                     child: StatefulBuilder(
@@ -543,9 +552,9 @@ class _ConnectionPageState extends State<ConnectionPage>
                               child: _menuOpen.value
                                   ? Transform.rotate(
                                       angle: pi,
-                                      child: Icon(IconFont.more, size: 14),
+                                      child: Icon(IconFont.more, size: 16),
                                     )
-                                  : Icon(IconFont.more, size: 14),
+                                  : Icon(IconFont.more, size: 16),
                               onTapDown: (e) {
                                 offset = e.globalPosition;
                               },
@@ -614,13 +623,13 @@ class _ConnectionPageState extends State<ConnectionPage>
                     ),
                   ),
                 ),
-              ]),
+              ],
             ),
           ],
         ),
       ),
     );
     return Container(
-        constraints: const BoxConstraints(maxWidth: 600), child: w);
+        constraints: const BoxConstraints(maxWidth: 760), child: w);
   }
 }

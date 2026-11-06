@@ -24,6 +24,7 @@ import 'package:pull_down_button/pull_down_button.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../common.dart';
+import '../../powercloud/ui/barra_lateral.dart';
 import '../../models/platform_model.dart';
 
 class PeerTabPage extends StatefulWidget {
@@ -74,6 +75,7 @@ class _PeerTabPageState extends State<PeerTabPage>
 
   _PeerTabPageState() {
     _loadLocalOptions();
+    pcSeleccionarPestana = handleTabSelection;
   }
 
   void _loadLocalOptions() {
@@ -120,8 +122,10 @@ class _PeerTabPageState extends State<PeerTabPage>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                        child: visibleContextMenuListener(
-                            _createSwitchBar(context))),
+                        child: isDesktop
+                            ? _pcTituloPestana(context)
+                            : visibleContextMenuListener(
+                                _createSwitchBar(context))),
                     if (stateGlobal.isPortrait.isTrue)
                       ..._portraitRightActions(context)
                     else
@@ -132,6 +136,19 @@ class _PeerTabPageState extends State<PeerTabPage>
             ).paddingOnly(right: stateGlobal.isPortrait.isTrue ? 0 : 12)),
         _createPeersView(),
       ],
+    );
+  }
+
+  // PowerCloud: en escritorio las pestanas estan en la barra lateral; aqui solo el titulo.
+  Widget _pcTituloPestana(BuildContext context) {
+    final model = Provider.of<PeerTabModel>(context);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(translate(PeerTabModel.tabNames[model.currentTab]),
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.titleLarge?.color)),
     );
   }
 
