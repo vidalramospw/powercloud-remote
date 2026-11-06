@@ -2599,6 +2599,8 @@ connect(BuildContext context, String id,
     } catch (_) {}
   }
   id = id.replaceAll(' ', '');
+  // PowerCloud: solo tecnicos con sesion iniciada pueden conectarse a otros equipos.
+  if (!await pcExigirSesion()) return;
   final pcId = await pcResolveAlias(id);
   if (pcId == null) return;
   id = pcId;

@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hbb/utils/http_service.dart' as http;
 
 import '../common.dart';
+import '../common/widgets/login.dart';
 import 'textos.dart';
 import '../models/platform_model.dart';
 
@@ -73,6 +74,27 @@ bool pcEsIpPrivada(String texto) {
     return (b0 & 0xFE) == 0xFC || (b0 == 0xFE && (b1 & 0xC0) == 0x80); // fc00::/7, fe80::/10
   }
   return false;
+}
+
+/// Conectarse a otros equipos exige sesion de tecnico. Si no la hay, ofrece iniciarla.
+/// Devuelve true si se puede seguir con la conexion.
+Future<bool> pcExigirSesion() async {
+  if (bind.mainGetLocalOption(key: 'access_token').isNotEmpty) return true;
+  final iniciar = await gFFI.dialogManager.show<bool>((setState, close, context) {
+    return CustomAlertDialog(
+      title: Text(pcT('Sign in required')),
+      content: Text(pcT('To connect to other devices, sign in with your PowerCloud technician account.')),
+      actions: [
+        dialogButton('Cancel', onPressed: () => close(false), isOutline: true),
+        dialogButton(pcT('Sign in'), onPressed: () => close(true)),
+      ],
+      onSubmit: () => close(true),
+      onCancel: () => close(false),
+    );
+  });
+  if (iniciar != true) return false;
+  final ok = await loginDialog();
+  return ok == true && bind.mainGetLocalOption(key: 'access_token').isNotEmpty;
 }
 
 /// Opcion por equipo con el alias de PowerCloud con que se le conecto.
