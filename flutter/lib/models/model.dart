@@ -136,6 +136,9 @@ class FfiModel with ChangeNotifier {
   bool isRefreshing = false;
 
   Timer? timerScreenshot;
+  // PowerCloud: captura pedida para la miniatura de la tarjeta (no para el usuario).
+  bool pcMiniaturaPendiente = false;
+  Timer? pcTimerMiniatura;
 
   Rect? get rect => _rect;
   bool get isOriginalResolutionSet =>
@@ -263,6 +266,9 @@ class FfiModel with ChangeNotifier {
     clearPermissions();
     waitForImageTimer?.cancel();
     timerScreenshot?.cancel();
+    pcTimerMiniatura?.cancel();
+    pcTimerMiniatura = null;
+    pcMiniaturaPendiente = false;
   }
 
   setConnectionType(
@@ -484,6 +490,11 @@ class FfiModel with ChangeNotifier {
 
   _handleScreenshot(
       Map<String, dynamic> evt, SessionID sessionId, String peerId) {
+    if (pcMiniaturaPendiente) {
+      pcMiniaturaPendiente = false;
+      pcGuardarCapturaComoMiniatura(sessionId, peerId, evt['msg'] ?? '');
+      return;
+    }
     timerScreenshot?.cancel();
     timerScreenshot = null;
     final msg = evt['msg'] ?? '';
@@ -4337,6 +4348,9 @@ class FFI {
         for (final cb in imageModel.callbacksOnFirstImage) {
           cb(id);
         }
+        if (connType == ConnType.defaultConn && isDesktop && !isWeb) {
+          pcProgramarMiniatura(this);
+        }
       } finally {
         _applyPendingMonitorRestore();
       }
@@ -4397,6 +4411,8 @@ class FFI {
     imageModel.callbacksOnFirstImage.clear();
     shortcutModel.clear();
     // PowerCloud: miniatura de la ultima pantalla para la tarjeta del equipo.
+    ffiModel.pcTimerMiniatura?.cancel();
+    ffiModel.pcTimerMiniatura = null;
     if (connType == ConnType.defaultConn && !isWeb) {
       await pcGuardarMiniatura(id, imageModel.image);
     }
