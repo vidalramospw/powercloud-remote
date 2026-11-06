@@ -9,4 +9,4 @@ solo por su entrada y salida estándar. Si el binario no está, PowerCloud Remot
 
 | Plataforma | Archivo | Versión del Engine |
 |---|---|---|
-| Windows x64 | windows-x64/pce-agente.exe, pce-conector.exe, pce-visor.exe | 160c4ef |
+| Windows x64 | windows-x64/pce-agente.exe, pce-conector.exe, pce-visor.exe | 6f68a35 |
