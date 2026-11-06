@@ -11,6 +11,7 @@ import 'package:flutter_hbb/models/chat_model.dart';
 import 'package:flutter_hbb/models/state_model.dart';
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../powercloud/ui/estado_conexion.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:debounce_throttle/debounce_throttle.dart';
@@ -162,7 +163,7 @@ Alignment _alignmentForEdge(_ToolbarEdge edge, double fraction) {
 // The drag handle hangs off the side of the toolbar facing away from the
 // docked edge, so the icons themselves sit flush against that edge.
 BorderRadius _collapseHandleBorderRadius(_ToolbarEdge edge) {
-  const r = Radius.circular(5);
+  const r = Radius.circular(10);
   switch (edge) {
     case _ToolbarEdge.top:
       return const BorderRadius.vertical(bottom: r);
@@ -341,6 +342,108 @@ class _ToolbarTheme {
   static const double buttonVMargin = 6;
   static const double iconRadius = 10;
 
+  // PowerCloud: barra propia tipo "pildora": iconos de linea con texto corto debajo (en horizontal),
+  // sin cuadros de fondo (solo al pasar el mouse) y "Terminar" como pildora roja con texto.
+  static bool pcConTexto = true;
+  static const double pcAnchoTexto = 60;
+  static const double pcAltoTexto = 50;
+
+  static IconData? pcIconoPropio(String? asset) {
+    switch (asset) {
+      case 'assets/pinned.svg':
+        return Icons.push_pin_rounded;
+      case 'assets/unpinned.svg':
+        return Icons.push_pin_outlined;
+      case 'assets/actions.svg':
+        return Icons.bolt_outlined;
+      case 'assets/actions_mobile.svg':
+        return Icons.smartphone_outlined;
+      case 'assets/display.svg':
+        return Icons.desktop_windows_outlined;
+      case 'assets/keyboard_mouse.svg':
+        return Icons.keyboard_outlined;
+      case 'assets/chat.svg':
+      case 'assets/message_24dp_5F6368.svg':
+        return Icons.chat_bubble_outline_rounded;
+      case 'assets/voice_call.svg':
+      case 'assets/call_wait.svg':
+        return Icons.call_outlined;
+      case 'assets/rec.svg':
+        return Icons.fiber_manual_record_outlined;
+      case 'assets/close.svg':
+        return Icons.power_settings_new_rounded;
+    }
+    return null;
+  }
+
+  static String pcEtiqueta(String tooltip) {
+    switch (tooltip) {
+      case 'Pin Toolbar':
+      case 'Unpin Toolbar':
+        return translate('Pin');
+      case 'Control Actions':
+        return translate('Actions');
+      case 'Mobile Actions':
+        return translate('Mobile');
+      case 'Select Monitor':
+        return translate('Monitor');
+      case 'Display Settings':
+        return translate('Display');
+      case 'Keyboard Settings':
+        return translate('Keyboard');
+      case 'Chat':
+      case 'Text chat':
+        return translate('Chat');
+      case 'Voice call':
+        return translate('Call');
+      case 'Close':
+        return translate('End session');
+    }
+    if (tooltip.toLowerCase().contains('record')) return translate('Record');
+    return translate(tooltip);
+  }
+
+  /// Contenido de un boton: icono (propio si hay) y, en la barra horizontal, el texto debajo.
+  static Widget pcContenido(BuildContext context, String? asset, Widget? propio,
+      String tooltip, Color color, bool hover) {
+    final c = pcIcono(context, color, hover);
+    final iconData = pcIconoPropio(asset);
+    final Widget icono = propio ??
+        (iconData != null
+            ? Icon(iconData, size: 21, color: c)
+            : SvgPicture.asset(asset!,
+                colorFilter: ColorFilter.mode(c, BlendMode.srcIn),
+                width: buttonSize,
+                height: buttonSize));
+    if (asset == 'assets/close.svg') {
+      return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(Icons.power_settings_new_rounded, size: 18, color: c),
+        const SizedBox(width: 6),
+        Text(pcEtiqueta(tooltip),
+            style: TextStyle(
+                color: c, fontSize: 13, fontWeight: FontWeight.w600)),
+      ]);
+    }
+    if (!pcConTexto) return Center(child: icono);
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      SizedBox(height: 24, child: Center(child: icono)),
+      const SizedBox(height: 2),
+      Text(pcEtiqueta(tooltip),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              fontSize: 10.5, fontWeight: FontWeight.w500, color: c)),
+    ]);
+  }
+
+  static Size pcTamano(String? asset, double? ancho) {
+    if (asset == 'assets/close.svg') {
+      return Size(pcConTexto ? 118 : 108, pcConTexto ? 38 : buttonSize);
+    }
+    if (!pcConTexto) return Size(ancho ?? buttonSize, buttonSize);
+    return Size(ancho == null ? pcAnchoTexto : ancho + 20, pcAltoTexto);
+  }
+
   // PowerCloud: botones "suaves" (fondo translucido + icono de color) en vez de solidos.
   // Azul para acciones, gris para opciones apagadas (p. ej. fijar) y rojo para cerrar/grabando,
   // que solo se vuelve rojo solido al pasar el mouse.
@@ -366,10 +469,10 @@ class _ToolbarTheme {
       final base = Theme.of(context).brightness == Brightness.dark
           ? Colors.white
           : Colors.black;
-      return base.withOpacity(hover ? 0.14 : 0.07);
+      return base.withOpacity(hover ? 0.10 : 0.0);
     }
     if (!_pcSuave(c)) return hover ? hoverC : c;
-    return const Color(0xFF38B6E8).withOpacity(hover ? 0.30 : 0.15);
+    return const Color(0xFF38B6E8).withOpacity(hover ? 0.16 : 0.0);
   }
   static const double elevation = 3;
 
@@ -390,11 +493,16 @@ class _ToolbarTheme {
   static MenuStyle defaultMenuStyle(BuildContext context) => MenuStyle(
         side: MaterialStateProperty.all(BorderSide(
           width: 1,
-          color: borderColor(context),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF243040)
+              : borderColor(context),
         )),
-        shape: MaterialStatePropertyAll(RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(_ToolbarTheme.menuBorderRadius))),
+        backgroundColor: MaterialStatePropertyAll(
+            Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF141C25)
+                : Colors.white),
+        shape: MaterialStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         padding: MaterialStateProperty.all(_ToolbarTheme.menuPadding),
       );
   static final defaultMenuButtonStyle = ButtonStyle(
@@ -803,9 +911,12 @@ class _RemoteToolbarState extends State<RemoteToolbar> {
       return Offstage(
         offstage: _dragging.isTrue,
         child: Material(
-          elevation: _ToolbarTheme.elevation,
-          shadowColor: MyTheme.color(context).shadow,
+          elevation: 6,
+          shadowColor: Colors.black54,
           borderRadius: borderRadius,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF141C25)
+              : Colors.white,
           child: _DraggableShowHide(
             id: widget.id,
             ffi: widget.ffi,
@@ -834,6 +945,11 @@ class _RemoteToolbarState extends State<RemoteToolbar> {
   Widget _buildToolbar(
       BuildContext context, _ToolbarEdge edge, bool isHorizontal) {
     final List<Widget> toolbarItems = [];
+    _ToolbarTheme.pcConTexto = isHorizontal;
+    if (isHorizontal) {
+      toolbarItems.add(_pcEstadoBarra(context));
+      toolbarItems.add(_pcSeparador(context, isHorizontal));
+    }
     toolbarItems.add(_PinMenu(state: widget.state));
     toolbarItems.add(Obx(() {
       final privacyModeState = PrivacyModeState.find(widget.id);
@@ -882,8 +998,9 @@ class _RemoteToolbarState extends State<RemoteToolbar> {
       toolbarItems.add(_VoiceCallMenu(id: widget.id, ffi: widget.ffi));
     }
     if (!isWeb) toolbarItems.add(_RecordMenu());
+    toolbarItems.add(_pcSeparador(context, isHorizontal));
     toolbarItems.add(_CloseMenu(id: widget.id, ffi: widget.ffi));
-    final toolbarBorderRadius = BorderRadius.all(Radius.circular(4.0));
+    final toolbarBorderRadius = BorderRadius.all(Radius.circular(16.0));
     // innerAxis: how the toolbar icons themselves flow.
     // outerAxis: how the toolbar block and the handle stack against each other
     // (perpendicular to the dock edge, so the handle hangs off the interior face).
@@ -893,14 +1010,12 @@ class _RemoteToolbarState extends State<RemoteToolbar> {
         ? SizedBox(width: _ToolbarTheme.buttonHMargin * 2)
         : SizedBox(height: _ToolbarTheme.buttonHMargin * 2);
     final toolbarMaterial = Material(
-      elevation: _ToolbarTheme.elevation,
-      shadowColor: MyTheme.color(context).shadow,
+      elevation: 8,
+      shadowColor: Colors.black54,
       borderRadius: toolbarBorderRadius,
-      color: Theme.of(context)
-          .menuBarTheme
-          .style
-          ?.backgroundColor
-          ?.resolve(MaterialState.values.toSet()),
+      color: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF141C25)
+          : Colors.white,
       child: SingleChildScrollView(
         scrollDirection: innerAxis,
         child: Theme(
@@ -932,6 +1047,36 @@ class _RemoteToolbarState extends State<RemoteToolbar> {
       mainAxisSize: MainAxisSize.min,
       children: children,
     );
+  }
+
+  /// Estado de la conexion al inicio de la barra (punto de color + texto).
+  Widget _pcEstadoBarra(BuildContext context) {
+    return Obx(() {
+      final ct = ConnectionTypeState.find(widget.id);
+      if (!ct.isValid()) return const Offstage();
+      return Padding(
+        padding: const EdgeInsets.only(left: 6, right: 2),
+        child: pcEstadoConexion(ct.secure.value == ConnectionType.strSecure,
+            ct.direct.value == ConnectionType.strDirect),
+      );
+    });
+  }
+
+  Widget _pcSeparador(BuildContext context, bool horizontal) {
+    final color = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF243040)
+        : const Color(0xFFD8DEE6);
+    return horizontal
+        ? Container(
+            width: 1,
+            height: 30,
+            color: color,
+            margin: const EdgeInsets.symmetric(horizontal: 6))
+        : Container(
+            height: 1,
+            width: 24,
+            color: color,
+            margin: const EdgeInsets.symmetric(vertical: 6));
   }
 
   ThemeData themeData() {
@@ -3088,17 +3233,12 @@ class _IconMenuButtonState extends State<_IconMenuButton> {
   @override
   Widget build(BuildContext context) {
     assert(widget.assetName != null || widget.icon != null);
-    final icon = widget.icon ??
-        SvgPicture.asset(
-          widget.assetName!,
-          colorFilter: ColorFilter.mode(
-              _ToolbarTheme.pcIcono(context, widget.color, hover), BlendMode.srcIn),
-          width: _ToolbarTheme.buttonSize,
-          height: _ToolbarTheme.buttonSize,
-        );
+    final icon = _ToolbarTheme.pcContenido(context, widget.assetName,
+        widget.icon, widget.tooltip, widget.color, hover);
+    final tamano = _ToolbarTheme.pcTamano(widget.assetName, widget.width);
     var button = SizedBox(
-      width: widget.width ?? _ToolbarTheme.buttonSize,
-      height: _ToolbarTheme.buttonSize,
+      width: tamano.width,
+      height: tamano.height,
       child: MenuItemButton(
           style: ButtonStyle(
               backgroundColor: MaterialStatePropertyAll(Colors.transparent),
@@ -3175,17 +3315,12 @@ class _IconSubmenuButtonState extends State<_IconSubmenuButton> {
   @override
   Widget build(BuildContext context) {
     assert(widget.svg != null || widget.icon != null);
-    final icon = widget.icon ??
-        SvgPicture.asset(
-          widget.svg!,
-          colorFilter: ColorFilter.mode(
-              _ToolbarTheme.pcIcono(context, widget.color, hover), BlendMode.srcIn),
-          width: _ToolbarTheme.buttonSize,
-          height: _ToolbarTheme.buttonSize,
-        );
+    final icon = _ToolbarTheme.pcContenido(
+        context, widget.svg, widget.icon, widget.tooltip, widget.color, hover);
+    final tamano = _ToolbarTheme.pcTamano(widget.svg, widget.width);
     final button = SizedBox(
-        width: widget.width ?? _ToolbarTheme.buttonSize,
-        height: _ToolbarTheme.buttonSize,
+        width: tamano.width,
+        height: tamano.height,
         child: SubmenuButton(
             menuStyle:
                 widget.menuStyle ?? _ToolbarTheme.defaultMenuStyle(context),

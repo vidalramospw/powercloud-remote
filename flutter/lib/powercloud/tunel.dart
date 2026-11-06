@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../common.dart';
+import '../common/formatter/id_formatter.dart';
 import '../models/platform_model.dart';
 import 'textos.dart';
 

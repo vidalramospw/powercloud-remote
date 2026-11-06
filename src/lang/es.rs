@@ -899,5 +899,11 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Close tunnel", "Cerrar túnel"),
         ("Try again", "Reintentar"),
         ("TCP tunnel to %s", "Túnel TCP hacia %s"),
+        ("Pin", "Fijar"),
+        ("Actions", "Acciones"),
+        ("Mobile", "Móvil"),
+        ("Call", "Llamada"),
+        ("End session", "Terminar"),
+        ("Record", "Grabar"),
     ].iter().cloned().collect();
 }

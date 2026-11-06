@@ -75,6 +75,16 @@ bool pcEsIpPrivada(String texto) {
   return false;
 }
 
+/// Opcion por equipo con el alias de PowerCloud con que se le conecto.
+const kPcOpcionAlias = 'pc-alias';
+
+/// Linea secundaria de la tarjeta: alias de PowerCloud (si se conoce) y usuario@equipo.
+String pcLineaTarjeta(String id, String usuarioEquipo) {
+  final alias = bind.mainGetPeerOptionSync(id: id, key: kPcOpcionAlias);
+  if (alias.isEmpty) return usuarioEquipo;
+  return usuarioEquipo.isEmpty ? alias : '$alias · $usuarioEquipo';
+}
+
 Future<String?> pcResolveAlias(String id) async {
   if (!pcIsAlias(id)) return id;
   if (bind.mainGetLocalOption(key: 'access_token').isEmpty) {
@@ -89,6 +99,9 @@ Future<String?> pcResolveAlias(String id) async {
     final json = _json(resp);
     final resuelto = json['id'];
     if (resp.statusCode == 200 && resuelto is String && resuelto.isNotEmpty) {
+      // Se recuerda el alias para mostrarlo en la tarjeta del equipo (sesiones recientes, favoritos).
+      await bind.mainSetPeerOption(
+          id: resuelto, key: kPcOpcionAlias, value: id.trim().toLowerCase());
       return resuelto;
     }
     showToast((json['error'] ?? pcT('Could not resolve the alias')).toString());
