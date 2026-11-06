@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../common.dart';
 import '../../powercloud/alias.dart';
 import '../../powercloud/tunel.dart';
+import '../../powercloud/miniatura.dart';
 import '../../common/formatter/id_formatter.dart';
 import '../../models/peer_model.dart';
 import '../../models/platform_model.dart';
@@ -313,7 +314,9 @@ class _PeerCardState extends State<_PeerCard>
                 Expanded(
                   child: Container(
                     color: const Color(0xFF1A6E99), // PowerCloud
-                    child: Row(
+                    child: Stack(fit: StackFit.expand, children: [
+                    if (pcTieneMiniatura(peer.id)) pcFondoMiniatura(peer.id)!,
+                    Row(
                       children: [
                         Expanded(
                           child: Column(
@@ -321,8 +324,8 @@ class _PeerCardState extends State<_PeerCard>
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(6),
-                                child:
-                                    getPlatformImage(peer.platform, size: 60),
+                                child: getPlatformImage(peer.platform,
+                                    size: pcTieneMiniatura(peer.id) ? 26 : 60),
                               ),
                               Row(
                                 children: [
@@ -365,6 +368,7 @@ class _PeerCardState extends State<_PeerCard>
                         ),
                       ],
                     ),
+                    ]),
                   ),
                 ),
                 Container(

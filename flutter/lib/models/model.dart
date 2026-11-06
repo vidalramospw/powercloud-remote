@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../powercloud/miniatura.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -4395,6 +4396,10 @@ class FFI {
     }
     imageModel.callbacksOnFirstImage.clear();
     shortcutModel.clear();
+    // PowerCloud: miniatura de la ultima pantalla para la tarjeta del equipo.
+    if (connType == ConnType.defaultConn && !isWeb) {
+      await pcGuardarMiniatura(id, imageModel.image);
+    }
     await imageModel.update(null);
     cursorModel.clear();
     ffiModel.clear();

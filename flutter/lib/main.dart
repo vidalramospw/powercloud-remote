@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'powercloud/miniatura.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -134,6 +135,7 @@ Future<void> initEnv(String appType) async {
 void runMainApp(bool startService) async {
   // register uni links
   await initEnv(kAppTypeMain);
+  await pcPrepararMiniaturas();
   checkUpdate();
   // trigger connection status updater
   await bind.mainCheckConnectStatus();
