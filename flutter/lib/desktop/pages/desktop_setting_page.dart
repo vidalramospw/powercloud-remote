@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hbb/common.dart';
+import 'package:flutter_hbb/powercloud/version.dart';
 import 'package:flutter_hbb/common/widgets/audio_input.dart';
 import 'package:flutter_hbb/common/widgets/setting_widgets.dart';
 import 'package:flutter_hbb/consts.dart';
@@ -2570,24 +2571,15 @@ class _About extends StatefulWidget {
 }
 
 class _AboutState extends State<_About> {
+  // PowerCloud: informacion propia de PowerCloud El Salvador.
   @override
   Widget build(BuildContext context) {
     return futureBuilder(future: () async {
-      final license = await bind.mainGetLicense();
-      final version = await bind.mainGetVersion();
       final buildDate = await bind.mainGetBuildDate();
       final fingerprint = await bind.mainGetFingerprint();
       final myId = await bind.mainGetMyId();
-      return {
-        'license': license,
-        'version': version,
-        'buildDate': buildDate,
-        'fingerprint': fingerprint,
-        'myId': myId
-      };
+      return {'buildDate': buildDate, 'fingerprint': fingerprint, 'myId': myId};
     }(), hasData: (data) {
-      final license = data['license'].toString();
-      final version = data['version'].toString();
       final buildDate = data['buildDate'].toString();
       final fingerprint = data['fingerprint'].toString();
       final myId = data['myId'].toString();
@@ -2595,15 +2587,13 @@ class _AboutState extends State<_About> {
       final scrollController = ScrollController();
       return SingleChildScrollView(
         controller: scrollController,
-        child: _Card(title: translate('About RustDesk'), children: [
+        child: _Card(title: 'Acerca de PowerCloud Remote', children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 8.0,
-              ),
+              const SizedBox(height: 8.0),
               SelectionArea(
-                  child: Text('${translate('Version')}: $version')
+                  child: Text('${translate('Version')}: $kPcVersion')
                       .marginSymmetric(vertical: 4.0)),
               SelectionArea(
                   child: Text('${translate('Build Date')}: $buildDate')
@@ -2616,23 +2606,16 @@ class _AboutState extends State<_About> {
                   child: Text('${translate('ID')}: $myId')
                       .marginSymmetric(vertical: 4.0)),
               InkWell(
-                  onTap: () {
-                    launchUrlString('https://rustdesk.com/privacy.html');
-                  },
-                  child: Text(
-                    translate('Privacy Statement'),
-                    style: linkStyle,
-                  ).marginSymmetric(vertical: 4.0)),
+                  onTap: () => launchUrlString('https://www.powercloud.com.sv'),
+                  child: Text(translate('Website'), style: linkStyle)
+                      .marginSymmetric(vertical: 4.0)),
               InkWell(
-                  onTap: () {
-                    launchUrlString('https://rustdesk.com');
-                  },
-                  child: Text(
-                    translate('Website'),
-                    style: linkStyle,
-                  ).marginSymmetric(vertical: 4.0)),
+                  onTap: () => launchUrlString(
+                      'https://monitoreo.powercloud.com.sv/descargar'),
+                  child: const Text('Descargas', style: linkStyle)
+                      .marginSymmetric(vertical: 4.0)),
               Container(
-                decoration: const BoxDecoration(color: Color(0xFF2c8cff)),
+                decoration: const BoxDecoration(color: Color(0xFF1A8FC4)),
                 padding:
                     const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
                 child: SelectionArea(
@@ -2643,11 +2626,11 @@ class _AboutState extends State<_About> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Copyright © ${DateTime.now().toString().substring(0, 4)} Purslane Tech Pte. Ltd.\n$license',
+                            '© ${DateTime.now().year} PowerCloud El Salvador',
                             style: const TextStyle(color: Colors.white),
                           ),
-                          Text(
-                            translate('Slogan_tip'),
+                          const Text(
+                            'Soporte remoto con su autorización.',
                             style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white),
