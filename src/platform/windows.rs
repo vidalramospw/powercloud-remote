@@ -1854,6 +1854,7 @@ fn get_before_uninstall(kill_self: bool) -> ResultType<String> {
     taskkill /F /IM {broker_exe}
     taskkill /F /IM {app_name}.exe{filter}
     taskkill /F /IM pce-agente.exe
+    taskkill /F /IM pce-conector.exe
     reg delete HKEY_CLASSES_ROOT\\.{ext} /f
     reg delete HKEY_CLASSES_ROOT\\{ext} /f
     netsh advfirewall firewall delete rule name=\"{app_name} Service\"
@@ -3378,6 +3379,7 @@ pub fn uninstall_service(show_new_window: bool, _: bool) -> bool {
     taskkill /F /IM {broker_exe}
     taskkill /F /IM {app_name}.exe{filter}
     taskkill /F /IM pce-agente.exe
+    taskkill /F /IM pce-conector.exe
     ",
         app_name = crate::get_app_name(),
         broker_exe = WIN_TOPMOST_INJECTED_PROCESS_EXE,
@@ -3414,6 +3416,7 @@ fn get_install_service_commands(path: &str, exe: &str) -> ResultType<InstallComm
 chcp 65001
 taskkill /F /IM {app_name}.exe{filter}
 taskkill /F /IM pce-agente.exe
+taskkill /F /IM pce-conector.exe
 {tray_shortcut_commands}
 copy /Y \"%RUSTDESK_OUTPUT_DIR%\\{app_name} Tray.lnk\" \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\\"
 {import_config}
@@ -3642,6 +3645,7 @@ chcp 65001
 sc stop {app_name}
 taskkill /F /IM {app_name}.exe{filter}
 taskkill /F /IM pce-agente.exe
+taskkill /F /IM pce-conector.exe
 {reg_cmd}
 {copy_exe}
 {rename_exe}

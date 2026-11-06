@@ -1,6 +1,6 @@
 # PowerCloud Engine (binario)
 
-`pce-agente` es el agente del túnel de **PowerCloud Engine**. Es un programa independiente,
+`pce-agente` (equipo del cliente) y `pce-conector` (PC del técnico) son el túnel de **PowerCloud Engine**. Son programas independientes,
 propiedad de PowerCloud El Salvador, distribuido junto a PowerCloud Remote. **No es parte del
 código fuente de este repositorio** ni está cubierto por su licencia AGPL-3.0.
 
@@ -9,4 +9,4 @@ solo por su entrada y salida estándar. Si el binario no está, PowerCloud Remot
 
 | Plataforma | Archivo | Versión del Engine |
 |---|---|---|
-| Windows x64 | windows-x64/pce-agente.exe | 2b9cce8 |
+| Windows x64 | windows-x64/pce-agente.exe, pce-conector.exe | 733a155 |

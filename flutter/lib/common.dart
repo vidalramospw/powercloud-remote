@@ -40,6 +40,7 @@ import 'desktop/pages/view_camera_page.dart' as desktop_view_camera;
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
 import 'models/model.dart';
 import 'powercloud/alias.dart';
+import 'powercloud/tunel.dart';
 import 'powercloud/textos.dart';
 import 'models/platform_model.dart';
 
@@ -2603,6 +2604,11 @@ connect(BuildContext context, String id,
   id = pcId;
   if (!pcIdPermitido(id)) {
     showToast(pcT('Only PowerCloud Remote IDs, aliases or private network IPs can be used'));
+    return;
+  }
+  // Tunel de PowerCloud Engine: si el conector viaja con esta instalacion, reemplaza al de siempre.
+  if (isTcpTunneling && isDesktop && pcRutaConector() != null) {
+    pcAbrirTunel(id);
     return;
   }
   final oldId = id;
