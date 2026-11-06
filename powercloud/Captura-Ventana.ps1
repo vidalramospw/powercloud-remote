@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 public static class PcVentanas {
+    [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     public delegate bool EnumProc(IntPtr h, IntPtr p);
     [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc f, IntPtr p);
     [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
@@ -30,6 +31,7 @@ public static class PcVentanas {
     }
 }
 "@
+[void][PcVentanas]::SetProcessDPIAware()
 New-Item -ItemType Directory -Force -Path $Salida | Out-Null
 $i = 0
 foreach ($p in Get-Process | Where-Object { $_.Path -like "$Carpeta\*" }) {
