@@ -43,6 +43,7 @@ Future<void> pcAbrirEscritorioPropio(String idOAlias) async {
   if (id == null) return;
   final clave = TextEditingController();
   var oculto = true;
+  var recordar = bind.mainGetLocalOption(key: 'pc-engine-recordar') == 'Y';
   final aceptado = await gFFI.dialogManager.show<bool>((setState, close, context) {
     return CustomAlertDialog(
       title: Row(children: [
@@ -52,20 +53,31 @@ Future<void> pcAbrirEscritorioPropio(String idOAlias) async {
       ]),
       content: SizedBox(
         width: 420,
-        child: TextField(
-          controller: clave,
-          autofocus: true,
-          obscureText: oculto,
-          decoration: InputDecoration(
-            labelText: pcT('Password'),
-            helperText: pcT('Leave it empty so the person at the device accepts'),
-            suffixIcon: IconButton(
-              icon: Icon(oculto ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-              onPressed: () => setState(() => oculto = !oculto),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(
+            controller: clave,
+            autofocus: true,
+            obscureText: oculto,
+            decoration: InputDecoration(
+              labelText: pcT('Password'),
+              helperText: pcT('Leave it empty to use the remembered one, or so the person at the device accepts'),
+              helperMaxLines: 2,
+              suffixIcon: IconButton(
+                icon: Icon(oculto ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => oculto = !oculto),
+              ),
             ),
+            onSubmitted: (_) => close(true),
           ),
-          onSubmitted: (_) => close(true),
-        ),
+          const SizedBox(height: 8),
+          CheckboxListTile(
+            value: recordar,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(pcT('Remember password on this PC')),
+            onChanged: (v) => setState(() => recordar = v ?? false),
+          ),
+        ]),
       ),
       actions: [
         dialogButton('Cancel', onPressed: () => close(false), isOutline: true),
@@ -78,6 +90,7 @@ Future<void> pcAbrirEscritorioPropio(String idOAlias) async {
   final texto = clave.text;
   clave.dispose();
   if (aceptado != true) return;
+  await bind.mainSetLocalOption(key: 'pc-engine-recordar', value: recordar ? 'Y' : '');
   final tecnico = gFFI.userModel.userName.value.isNotEmpty
       ? gFFI.userModel.userName.value
       : Platform.localHostname;
@@ -90,6 +103,8 @@ Future<void> pcAbrirEscritorioPropio(String idOAlias) async {
       environment: {
         'PCE_TOKEN': bind.mainGetLocalOption(key: 'access_token'),
         if (texto.isNotEmpty) 'PCE_CLAVE': texto,
+        // El visor guarda solo el hash de la contrasena, cifrado para este usuario de Windows.
+        if (recordar) 'PCE_RECORDAR': '1',
       },
       mode: ProcessStartMode.detached,
     );
