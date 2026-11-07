@@ -918,12 +918,15 @@ showInputWarnAlert(FFI ffi) {
         children: [
           Text(translate("android_input_permission_tip1")),
           const SizedBox(height: 10),
+          Text(translate("android_input_disclosure"),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
           Text(translate("android_input_permission_tip2")),
         ],
       ),
       actions: [
-        dialogButton("Cancel", onPressed: close, isOutline: true),
-        dialogButton("Open System Setting", onPressed: submit),
+        dialogButton("Not now", onPressed: close, isOutline: true),
+        dialogButton("Agree and open settings", onPressed: submit),
       ],
       onSubmit: submit,
       onCancel: close,

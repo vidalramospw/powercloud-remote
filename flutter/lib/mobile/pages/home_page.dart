@@ -7,6 +7,7 @@ import '../../common.dart';
 import '../../common/widgets/chat_page.dart';
 import '../../models/platform_model.dart';
 import '../../models/state_model.dart';
+import '../../powercloud/textos.dart';
 import 'connection_page.dart';
 
 abstract class PageShape extends Widget {
@@ -150,7 +151,8 @@ class HomePageState extends State<HomePage> {
         ],
       );
     }
-    return Text(bind.mainGetAppNameSync());
+    // PowerCloud: nombre visible con espacio (APP_NAME es el nombre tecnico, sin espacio).
+    return const Text(kPcNombre);
   }
 }
 
