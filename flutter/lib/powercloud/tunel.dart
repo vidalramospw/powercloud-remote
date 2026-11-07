@@ -32,22 +32,65 @@ String? pcRutaVisor() {
   return File(ruta).existsSync() ? ruta : null;
 }
 
-/// Escritorio remoto propio de PowerCloud Engine (etapa de prueba: solo ver). Abre el visor en su
-/// propia ventana; la persona frente al equipo acepta en pantalla.
+/// Escritorio remoto propio de PowerCloud Engine (etapa de prueba). Pide la contrasena del equipo
+/// (como la conexion de siempre): con ella entra de una, tambien sin nadie frente al equipo; vacia,
+/// la persona frente al equipo acepta en pantalla. Abre el visor en su propia ventana.
 Future<void> pcAbrirEscritorioPropio(String idOAlias) async {
   final visor = pcRutaVisor();
   if (visor == null) return;
   if (!await pcExigirSesion()) return;
   final id = await pcResolveAlias(idOAlias.replaceAll(' ', ''));
   if (id == null) return;
+  final clave = TextEditingController();
+  var oculto = true;
+  final aceptado = await gFFI.dialogManager.show<bool>((setState, close, context) {
+    return CustomAlertDialog(
+      title: Row(children: [
+        const Icon(Icons.desktop_windows_outlined),
+        const SizedBox(width: 10),
+        Expanded(child: Text(pcT('PowerCloud remote desktop to %s', formatID(id)))),
+      ]),
+      content: SizedBox(
+        width: 420,
+        child: TextField(
+          controller: clave,
+          autofocus: true,
+          obscureText: oculto,
+          decoration: InputDecoration(
+            labelText: pcT('Password'),
+            helperText: pcT('Leave it empty so the person at the device accepts'),
+            suffixIcon: IconButton(
+              icon: Icon(oculto ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+              onPressed: () => setState(() => oculto = !oculto),
+            ),
+          ),
+          onSubmitted: (_) => close(true),
+        ),
+      ),
+      actions: [
+        dialogButton('Cancel', onPressed: () => close(false), isOutline: true),
+        dialogButton('Connect', onPressed: () => close(true)),
+      ],
+      onSubmit: () => close(true),
+      onCancel: () => close(false),
+    );
+  });
+  final texto = clave.text;
+  clave.dispose();
+  if (aceptado != true) return;
   final tecnico = gFFI.userModel.userName.value.isNotEmpty
       ? gFFI.userModel.userName.value
       : Platform.localHostname;
   try {
+    // La contrasena y el token de sesion van por variables de entorno: no quedan en la linea de
+    // comandos del proceso.
     await Process.start(
       visor,
       ['--id', id, '--tecnico', tecnico, '--relay', await _relay()],
-      environment: {'PCE_TOKEN': bind.mainGetLocalOption(key: 'access_token')},
+      environment: {
+        'PCE_TOKEN': bind.mainGetLocalOption(key: 'access_token'),
+        if (texto.isNotEmpty) 'PCE_CLAVE': texto,
+      },
       mode: ProcessStartMode.detached,
     );
   } catch (e) {

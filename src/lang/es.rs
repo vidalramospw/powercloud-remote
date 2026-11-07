@@ -917,6 +917,7 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("The Windows user on this device is not an administrator. Use an administrator username and password.", "El usuario de Windows de este equipo no es administrador. Use un usuario y contraseña de administrador."),
         ("Install PowerCloud Remote on the device to open an administrator terminal.", "Instale PowerCloud Remote en el equipo para abrir una terminal de administrador."),
         ("Remote desktop (PowerCloud Engine, test)", "Escritorio remoto (PowerCloud Engine, prueba)"),
+        ("PowerCloud remote desktop to %s", "Escritorio remoto PowerCloud a %s"),
         ("Folders", "Carpetas"),
         ("New folder", "Nueva carpeta"),
         ("New subfolder", "Nueva subcarpeta"),
